@@ -488,6 +488,7 @@
     line-height: 1;
   }
   .lb-btn:hover { transform: scale(1.2); }
+  .lb-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
   .lb-table {
     width: 100%;
@@ -580,7 +581,10 @@
 <div class="game-wrapper">
 
   <div class="header" style="display:flex;align-items:center;justify-content:space-between;">
-    <div style="width:32px"></div>
+    <div style="display:flex;gap:4px;">
+      <button class="lb-btn" id="giveup-btn" onclick="giveUp()" title="ויתור" disabled>🏳️</button>
+      <button class="lb-btn" onclick="confirmRestart()" title="התחל מחדש">↺</button>
+    </div>
     <div class="title">איפה ביבי?</div>
     <button class="lb-btn" onclick="showLeaderboard()" title="לוח תוצאות">🏆</button>
   </div>
@@ -601,8 +605,6 @@
       <span class="life" id="life-3">❤️</span>
     </div>
     <button class="hint-btn" id="hint-btn" onclick="useHint()">💡 רמז</button>
-    <button class="giveup-btn" id="giveup-btn" onclick="giveUp()">🏳️ וויתור</button>
-    <button class="giveup-btn" style="border-color:#dde4ef;color:var(--muted);" onclick="confirmRestart()">↺ מחדש</button>
   </div>
 
   <!-- Countdown -->
@@ -1138,6 +1140,11 @@ function nextRound() {
   startRound(round);
 }
 
+function finishGame() {
+  document.getElementById('win-overlay').classList.remove('show');
+  showGameOver();
+}
+
 // ─── Game over ───────────────────────────────────────────
 function showGameOver() {
   const avgTime = roundsWon > 0 ? Math.round(totalTimeSpent / roundsWon) : null;
@@ -1175,6 +1182,15 @@ function dismissSplash() {
   startTimer();
 }
 
+function giveUp() {
+  if (!gameActive) return;
+  gameActive = false;
+  stopTimer();
+  document.getElementById('giveup-btn').disabled = true;
+  revealTarget();
+  setTimeout(showGameOver, 2000);
+}
+
 function confirmRestart() {
   if (!confirm('להתחיל מחדש? הניקוד הנוכחי יאבד.')) return;
   gameActive = false;
@@ -1189,15 +1205,6 @@ function confirmRestart() {
   startRound(1);
 }
 
-// ─── Give up ─────────────────────────────────────────────
-function giveUp() {
-  if (!gameActive) return;
-  gameActive = false;
-  stopTimer();
-  revealTarget();
-  setTimeout(showGameOver, 2000);
-}
-
 // ─── Start round ─────────────────────────────────────────
 function startRound(r) {
   gameActive = false; stopTimer();
@@ -1205,8 +1212,7 @@ function startRound(r) {
   document.getElementById('round-num').textContent = r;
   const btn = document.getElementById('hint-btn');
   btn.disabled = false; btn.innerHTML = '💡 רמז';
-  document.getElementById('giveup-btn').disabled = true;
-  document.querySelectorAll('.cell').forEach(el => el.classList.remove('found','selected','hint','revealed'));
+  document.getElementById('giveup-btn').disabled = true;  document.querySelectorAll('.cell').forEach(el => el.classList.remove('found','selected','hint','revealed'));
 
   totalTime = getRoundTime(r);
   timeLeft  = totalTime;

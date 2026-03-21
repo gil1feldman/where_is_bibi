@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>איפה ביבי?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --knesset:  #1a3a5c;
+    --gold:     #d4a843;
+    --accent:   #e63946;
+    --green:    #2dc653;
+    --sky:      #e8f4fd;
+    --white:    #ffffff;
+    --text:     #1e293b;
+    --muted:    #64748b;
+    --shadow:   0 4px 24px rgba(0,0,0,0.10);
+    --r-sm:     10px;
+    --cell-size: 36px;
+    --grid-font: 1rem;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'Rubik', sans-serif;
+    background: linear-gradient(180deg, #a8d8f0 0%, #c9e8f8 30%, var(--sky) 60%);
+    color: var(--text);
+    overflow: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .game-wrapper {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px 0;
+    height: 100dvh;
+  }
+
+  /* HEADER */
+  .header { text-align: center; width: 100%; }
+  .title {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 900;
+    color: var(--knesset);
+    line-height: 1;
+  }
+  .subtitle {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 1px;
+    font-weight: 600;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: var(--white);
+    border-radius: var(--r-sm);
+    padding: 7px 14px;
+    box-shadow: var(--shadow);
+    gap: 10px;
+  }
+  .score-block { display: flex; flex-direction: column; align-items: center; }
+  .round-block { display: flex; flex-direction: column; align-items: flex-start; }
+  .round-label {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.55rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+  }
+  .round-num {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--knesset);
+    line-height: 1;
+  }
+  .lives-block { display: flex; gap: 4px; font-size: 1.3rem; }
+  .life { transition: transform 0.3s, opacity 0.3s; }
+  .life.lost { opacity: 0.15; transform: scale(0.75); }
+
+  .hint-btn {
+    background: transparent;
+    border: 2px solid #e2e8f0;
+    color: var(--muted);
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .hint-btn:hover:not(:disabled) {
+    border-color: var(--gold);
+    color: #92620a;
+    background: rgba(212,168,67,0.08);
+  }
+  .hint-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* COUNTDOWN */
+  .timer-wrap { width: 100%; }
+  .timer-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .timer-display {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--knesset);
+    font-variant-numeric: tabular-nums;
+    min-width: 44px;
+    transition: color 0.3s;
+  }
+  .timer-display.urgent {
+    color: var(--accent);
+    animation: pulse-urgent 0.6s ease infinite;
+  }
+  @keyframes pulse-urgent {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.1); }
+  }
+  .progress-wrap {
+    flex: 1;
+    background: rgba(0,0,0,0.08);
+    border-radius: 20px;
+    height: 11px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, var(--gold), #f7d060);
+    transition: width 0.9s linear, background 0.5s;
+    box-shadow: 0 0 8px rgba(212,168,67,0.4);
+  }
+  .progress-bar.urgent {
+    background: linear-gradient(90deg, var(--accent), #ff6b6b);
+    box-shadow: 0 0 8px rgba(230,57,70,0.4);
+  }
+
+  /* QUESTION */
+  .question-banner {
+    width: 100%;
+    background: var(--white);
+    border: 2px solid rgba(26,58,92,0.12);
+    border-right: 4px solid var(--knesset);
+    border-radius: var(--r-sm);
+    padding: 8px 14px 8px 38px;
+    text-align: center;
+    position: relative;
+    box-shadow: var(--shadow);
+  }
+  .question-banner::before {
+    content: '🔍';
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+  }
+  .question-label {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.55rem;
+    color: var(--knesset);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1px;
+    font-weight: 700;
+    opacity: 0.6;
+  }
+  .question-text {
+    font-size: clamp(0.82rem, 2.3vw, 1rem);
+    font-weight: 700;
+    color: var(--knesset);
+    line-height: 1.3;
+    transition: opacity 0.3s;
+  }
+
+  /* GRID */
+  .grid-container {
+    direction: ltr;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+  }
+  .grid {
+    display: inline-grid;
+    gap: 2px;
+    user-select: none;
+    touch-action: none;
+  }
+  .cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--grid-font);
+    font-weight: 700;
+    color: var(--text);
+    background: var(--white);
+    border: 1.5px solid #dde4ef;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s, transform 0.1s, border-color 0.1s;
+    box-shadow: 0 1px 3px rgba(26,58,92,0.07);
+  }
+  .cell:hover { background: var(--sky); border-color: var(--knesset); color: var(--knesset); }
+  .cell.selected {
+    background: rgba(212,168,67,0.2);
+    border-color: var(--gold);
+    color: #92620a;
+    transform: scale(1.07);
+    z-index: 2;
+    box-shadow: 0 0 0 2px rgba(212,168,67,0.3);
+  }
+  .cell.found {
+    background: rgba(45,198,83,0.12);
+    border-color: rgba(45,198,83,0.4);
+    color: #15803d;
+    font-weight: 800;
+    animation: pulse-found 0.5s ease;
+  }
+  @keyframes pulse-found {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.13); background: rgba(45,198,83,0.3); }
+    100% { transform: scale(1); }
+  }
+  .cell.hint {
+    background: rgba(212,168,67,0.15);
+    border-color: var(--gold);
+    color: #92620a;
+    animation: pulse-hint 1.4s ease-in-out 3;
+  }
+  @keyframes pulse-hint {
+    0%,100% { box-shadow: 0 0 0 0 rgba(212,168,67,0); }
+    50%     { box-shadow: 0 0 10px 3px rgba(212,168,67,0.5); }
+  }
+
+  .grid.shake { animation: shake 0.45s ease; }
+  @keyframes shake {
+    0%   { transform: translateX(0); }
+    20%  { transform: translateX(-9px); }
+    40%  { transform: translateX(9px); }
+    60%  { transform: translateX(-6px); }
+    80%  { transform: translateX(6px); }
+    100% { transform: translateX(0); }
+  }
+
+  .hint-line {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: center;
+    padding-bottom: 5px;
+  }
+  .hint-line span { color: var(--knesset); font-weight: 700; }
+
+  /* OVERLAYS */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,30,60,0.75);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .overlay.show { display: flex; animation: fade-in 0.3s ease; }
+  @keyframes fade-in { from{opacity:0} to{opacity:1} }
+
+  .sheet {
+    background: var(--white);
+    border-radius: 28px 28px 0 0;
+    padding: 20px 22px calc(32px + env(safe-area-inset-bottom,0px));
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+  .sheet-handle {
+    width: 40px; height: 4px;
+    background: #e2e8f0; border-radius: 4px;
+    margin-bottom: 2px;
+  }
+  .sheet-emoji { font-size: 2.8rem; }
+  .sheet-title { font-size: 1.7rem; font-weight: 900; color: var(--knesset); line-height: 1.1; }
+  .sheet-sub {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.95rem;
+    color: var(--muted);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .stats-row { display: flex; gap: 10px; width: 100%; }
+  .stat-box {
+    flex: 1;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 10px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .stat-val { font-size: 1.6rem; font-weight: 900; color: var(--knesset); line-height: 1; }
+  .stat-lbl {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.62rem;
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--knesset);
+    color: var(--white);
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Rubik', sans-serif;
+    box-shadow: 0 6px 0 #0d2240, var(--shadow);
+    transition: all 0.1s;
+    position: relative;
+    top: 0;
+  }
+  .btn-primary:active { top: 6px; box-shadow: 0 0 0 transparent; }
+
+  /* flash */
+  .screen-flash {
+    position: fixed; inset: 0; z-index: 50;
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .cell.revealed {
+    background: rgba(230,57,70,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 900;
+    animation: pulse-reveal 0.6s ease;
+  }
+  @keyframes pulse-reveal {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.15); background: rgba(230,57,70,0.35); }
+    100% { transform: scale(1); }
+  }
+
+  .screen-flash.red { background: rgba(230,57,70,0.2); }
+
+  @media (max-height: 700px) {
+    .game-wrapper { gap: 4px; padding-top: 5px; }
+    .question-banner { padding: 6px 12px 6px 36px; }
+    .status-bar { padding: 5px 12px; }
+    .sheet { gap: 8px; }
+    .sheet-emoji { font-size: 2.2rem; }
+    .sheet-title { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen-flash" id="screen-flash"></div>
+
+<div class="game-wrapper">
+
+  <div class="header">
+    <div class="title">איפה ביבי?</div>
+  </div>
+
+  <!-- Status: round / lives / hint -->
+  <div class="status-bar">
+    <div class="round-block">
+      <div class="round-label">סיבוב</div>
+      <div class="round-num" id="round-num">1</div>
+    </div>
+    <div class="score-block">
+      <div class="round-label">ניקוד</div>
+      <div class="round-num" id="score-display">0</div>
+    </div>
+    <div class="lives-block" id="lives-block">
+      <span class="life" id="life-1">❤️</span>
+      <span class="life" id="life-2">❤️</span>
+      <span class="life" id="life-3">❤️</span>
+    </div>
+    <button class="hint-btn" id="hint-btn" onclick="useHint()">💡 רמז</button>
+  </div>
+
+  <!-- Countdown -->
+  <div class="timer-wrap">
+    <div class="timer-row">
+      <div class="timer-display" id="timer">90</div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question -->
+  <div class="question-banner">
+    <div class="question-label">מי הוא?</div>
+    <div class="question-text" id="question-text"></div>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid-container">
+    <div class="grid" id="grid"></div>
+  </div>
+
+
+</div>
+
+<!-- Round-win overlay -->
+<div class="overlay" id="win-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-emoji">🎯</div>
+    <div class="sheet-title">מצאת את ביבי!</div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="win-round">1</div>
+        <div class="stat-lbl">סיבוב</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="win-score">0</div>
+        <div class="stat-lbl">+ניקוד</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="win-time-left">--</div>
+        <div class="stat-lbl">שנ' נותרו</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="win-next-time">--</div>
+        <div class="stat-lbl">זמן הבא</div>
+      </div>
+    </div>
+    <div class="sheet-sub" id="win-sub"></div>
+    <button class="btn-primary" onclick="nextRound()">סיבוב הבא ←</button>
+  </div>
+</div>
+
+<!-- Game-over overlay -->
+<div class="overlay" id="gameover-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-emoji">😵</div>
+    <div class="sheet-title">נגמר הזמן!</div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="go-rounds">0</div>
+        <div class="stat-lbl">סיבובים</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="go-score">0</div>
+        <div class="stat-lbl">ניקוד סופי</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="go-best">--</div>
+        <div class="stat-lbl">שיא אישי</div>
+      </div>
+    </div>
+    <div class="sheet-sub">ביבי הצליח להסתתר ממך...<br>נסה שוב!</div>
+    <button class="btn-primary" onclick="restartGame()">התחל מחדש</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// QUESTIONS — add more questions here ↓
+// ═══════════════════════════════════════════════════════════
+const QUESTIONS = [
+  "ראש הממשלה בטבח ה-7/10",
+  "ועדת חקירה ממלכתית קבעה כי סיכן את ביטחון המדינה",
+  "מעסיק יועץ שקיבל כסף מקטאר בזמן המלחמה",
+  "הצביע בעד תכנית ההתנתקות",
+  "נאשם ב-3 כתבי אישום",
+  "התעלם משלט שמאלנים בוגדים מחוץ למעון שלו",
+  "נתן לעבריין מורשע כמו בן גביר תפקיד בכיר בממשלה"
+  // ← הוסף שאלות נוספות כאן
+];
+
+const TARGETS = [
+  "נתניהו",
+];
+
+// ─── Round progression ───────────────────────────────────
+const INITIAL_TIME = 90;   // seconds for round 1
+const TIME_STEP    = 10;   // seconds removed each round
+const MIN_TIME     = 15;   // floor
+const MAX_LIVES    = 3;
+
+function getRoundTime(r) {
+  return Math.max(MIN_TIME, INITIAL_TIME - (r - 1) * TIME_STEP);
+}
+
+function getRoundGrid(r) {
+  // Grid grows every 2 rounds
+  const step     = Math.floor((r - 1) / 2);
+  const rows     = Math.min(8  + step * 2, 20);
+  const cols     = Math.min(10 + step * 2, 24);
+  const cellSize = Math.max(24, 40 - step * 2);
+  const fontSize = cellSize >= 34 ? '1rem' : cellSize >= 28 ? '0.88rem' : '0.75rem';
+  return { rows, cols, cellSize, fontSize };
+}
+
+const HEB = 'אבגדהוזחטיכלמנסעפצקרשת';
+
+// ─── State ───────────────────────────────────────────────
+let round      = 1;
+let lives      = MAX_LIVES;
+let roundsWon  = 0;
+let bestLeft   = -1;   // best (highest) seconds remaining on a win
+let totalScore = 0;
+let highScore  = 0;
+
+let grid          = [];
+let rows          = 0, cols = 0;
+let targetCells   = new Set();
+let selectedCells = [];
+let isDragging    = false;
+let selectStart   = null;
+
+let timerInterval = null;
+let timeLeft      = INITIAL_TIME;
+let totalTime     = INITIAL_TIME;
+let gameActive    = false;
+let hintUsed      = false;
+
+// ─── Grid generation ──────────────────────────────────────
+function generateGrid() {
+  const cfg = getRoundGrid(round);
+  rows = cfg.rows; cols = cfg.cols;
+  document.documentElement.style.setProperty('--cell-size', cfg.cellSize + 'px');
+  document.documentElement.style.setProperty('--grid-font', cfg.fontSize);
+
+  grid = Array.from({length: rows}, () => Array(cols).fill(''));
+  targetCells = new Set();
+
+  const dirs = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+  const word = TARGETS[Math.floor(Math.random() * TARGETS.length)];
+  let placed = false, attempts = 0;
+
+  while (!placed && attempts < 300) {
+    attempts++;
+    const [dr, dc] = dirs[Math.floor(Math.random() * dirs.length)];
+    const len = word.length;
+    const startR = Math.floor(Math.random() * rows);
+    const startC = Math.floor(Math.random() * cols);
+    const endR = startR + dr * (len - 1);
+    const endC = startC + dc * (len - 1);
+    if (endR < 0 || endR >= rows || endC < 0 || endC >= cols) continue;
+    let ok = true;
+    for (let i = 0; i < len; i++) {
+      const r = startR + dr * i, c = startC + dc * i;
+      if (grid[r][c] !== '' && grid[r][c] !== word[i]) { ok = false; break; }
+    }
+    if (!ok) continue;
+    for (let i = 0; i < len; i++) {
+      const r = startR + dr * i, c = startC + dc * i;
+      grid[r][c] = word[i];
+      targetCells.add(`${r},${c}`);
+    }
+    placed = true;
+  }
+
+  // Safety: if placement failed (should never happen with these grid sizes), retry the whole grid
+  if (!placed) {
+    console.warn('Grid placement failed, retrying...');
+    return generateGrid();
+  }
+
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      if (grid[r][c] === '')
+        grid[r][c] = HEB[Math.floor(Math.random() * HEB.length)];
+}
+
+function renderGrid() {
+  const gridEl = document.getElementById('grid');
+  gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+  gridEl.className = 'grid';
+  gridEl.innerHTML = '';
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.textContent = grid[r][c];
+      cell.dataset.r = r; cell.dataset.c = c;
+      cell.addEventListener('mousedown', e => { e.preventDefault(); startSel(r, c); });
+      cell.addEventListener('mouseenter', () => { if (isDragging) extendSel(r, c); });
+      cell.addEventListener('mouseup', () => endSel());
+      cell.addEventListener('touchstart', e => { e.preventDefault(); startSel(r, c); }, {passive:false});
+      cell.addEventListener('touchmove', e => {
+        e.preventDefault();
+        const t = e.touches[0];
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el && el.classList.contains('cell')) extendSel(+el.dataset.r, +el.dataset.c);
+      }, {passive:false});
+      cell.addEventListener('touchend', () => endSel());
+      gridEl.appendChild(cell);
+    }
+  }
+}
+
+function getCellEl(r, c) { return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`); }
+
+// ─── Countdown ───────────────────────────────────────────
+function startTimer() {
+  clearInterval(timerInterval);
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    if (!gameActive) return;
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) onTimeUp();
+  }, 1000);
+}
+
+function stopTimer() { clearInterval(timerInterval); }
+
+function updateTimerUI() {
+  const el  = document.getElementById('timer');
+  const bar = document.getElementById('progress-bar');
+  const pct = Math.max(0, (timeLeft / totalTime) * 100);
+  el.textContent  = timeLeft;
+  bar.style.width = pct + '%';
+  const urgent = timeLeft <= 10;
+  el.classList.toggle('urgent', urgent);
+  bar.classList.toggle('urgent', urgent);
+}
+
+function onTimeUp() {
+  gameActive = false;
+  stopTimer();
+  lives--;
+  updateLivesUI();
+
+  const gridEl = document.getElementById('grid');
+  gridEl.classList.add('shake');
+  setTimeout(() => gridEl.classList.remove('shake'), 500);
+  flashRed();
+
+  // Reveal where Netanyahu was hiding
+  revealTarget();
+
+  // Wait for player to see it, then continue
+  const delay = 2200;
+  if (lives <= 0) setTimeout(showGameOver, delay);
+  else            setTimeout(() => startRound(round), delay);
+}
+
+function revealTarget() {
+  targetCells.forEach(key => {
+    const [r, c] = key.split(',').map(Number);
+    const el = getCellEl(r, c);
+    if (el) {
+      el.classList.remove('selected', 'hint', 'found');
+      el.classList.add('revealed');
+    }
+  });
+}
+
+function flashRed() {
+  const f = document.getElementById('screen-flash');
+  f.className = 'screen-flash red';
+  f.style.opacity = '1';
+  setTimeout(() => { f.style.opacity = '0'; }, 400);
+}
+
+// ─── Lives ───────────────────────────────────────────────
+function updateLivesUI() {
+  for (let i = 1; i <= MAX_LIVES; i++)
+    document.getElementById(`life-${i}`).classList.toggle('lost', i > lives);
+}
+function resetLives() { lives = MAX_LIVES; updateLivesUI(); }
+
+// ─── Selection ───────────────────────────────────────────
+function startSel(r, c) {
+  if (!gameActive) return;
+  isDragging = true; selectStart = {r, c};
+  selectedCells = [{r, c}]; updateSelUI();
+}
+function extendSel(r, c) {
+  if (!isDragging || !selectStart) return;
+  const dr = r - selectStart.r, dc = c - selectStart.c;
+  let nr = 0, nc = 0;
+  if (dr === 0 && dc !== 0)              { nc = dc > 0 ? 1 : -1; }
+  else if (dc === 0 && dr !== 0)         { nr = dr > 0 ? 1 : -1; }
+  else if (Math.abs(dr)===Math.abs(dc)) { nr = dr>0?1:-1; nc = dc>0?1:-1; }
+  else { selectedCells = [{r:selectStart.r,c:selectStart.c}]; updateSelUI(); return; }
+  const cells = [];
+  let cr = selectStart.r, cc = selectStart.c;
+  while (true) {
+    cells.push({r: cr, c: cc});
+    if (cr === r && cc === c) break;
+    cr += nr; cc += nc;
+    if (cr < 0 || cr >= rows || cc < 0 || cc >= cols) break;
+  }
+  selectedCells = cells; updateSelUI();
+}
+function endSel() {
+  if (!isDragging) return;
+  isDragging = false; checkSel();
+  selectedCells = []; updateSelUI(); selectStart = null;
+}
+function updateSelUI() {
+  document.querySelectorAll('.cell.selected').forEach(el => {
+    if (!el.classList.contains('found')) el.classList.remove('selected');
+  });
+  selectedCells.forEach(({r,c}) => {
+    const el = getCellEl(r, c);
+    if (el && !el.classList.contains('found')) el.classList.add('selected');
+  });
+}
+function checkSel() {
+  if (selectedCells.length < 4) return;
+  const keys = new Set(selectedCells.map(({r,c}) => `${r},${c}`));
+  const overlap = [...keys].filter(k => targetCells.has(k)).length;
+  if (overlap === targetCells.size && keys.size === targetCells.size) {
+    selectedCells.forEach(({r,c}) => {
+      const el = getCellEl(r, c);
+      if (el) { el.classList.remove('selected'); el.classList.add('found'); }
+    });
+    setTimeout(onRoundWin, 450);
+  }
+}
+
+// ─── Hint ────────────────────────────────────────────────
+function useHint() {
+  if (hintUsed || !gameActive) return;
+  hintUsed = true;
+  const btn = document.getElementById('hint-btn');
+  btn.disabled = true; btn.textContent = '💡 נוצל';
+  const available = [...targetCells].filter(key => {
+    const el = getCellEl(...key.split(',').map(Number));
+    return el && !el.classList.contains('found') && !el.classList.contains('hint');
+  });
+  if (!available.length) return;
+  const key = available[Math.floor(Math.random() * available.length)];
+  const [r, c] = key.split(',').map(Number);
+  const el = getCellEl(r, c);
+  if (el) {
+    el.classList.add('hint');
+    setTimeout(() => { if (!el.classList.contains('found')) el.classList.remove('hint'); }, 4400);
+  }
+}
+
+// ─── Question ────────────────────────────────────────────
+function pickQuestion() {
+  const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+  const el = document.getElementById('question-text');
+  el.style.opacity = 0;
+  setTimeout(() => { el.textContent = q; el.style.opacity = 1; }, 200);
+}
+
+// ─── Scoring ─────────────────────────────────────────────
+// Base: timeLeft × round × 10  |  hint penalty: ×0.8
+function calcRoundScore() {
+  const base = timeLeft * round * 10;
+  return Math.round(hintUsed ? base * 0.8 : base);
+}
+
+function updateScoreDisplay() {
+  document.getElementById('score-display').textContent = totalScore.toLocaleString();
+}
+
+// ─── Round win ───────────────────────────────────────────
+function onRoundWin() {
+  gameActive = false; stopTimer();
+  roundsWon++;
+  if (timeLeft > bestLeft) bestLeft = timeLeft;
+
+  const roundScore = calcRoundScore();
+  totalScore += roundScore;
+  updateScoreDisplay();
+
+  const nextTime = getRoundTime(round + 1);
+  document.getElementById('win-round').textContent     = round;
+  document.getElementById('win-score').textContent     = '+' + roundScore.toLocaleString();
+  document.getElementById('win-time-left').textContent = timeLeft;
+  document.getElementById('win-next-time').textContent = nextTime;
+
+  const sub = document.getElementById('win-sub');
+  const cfg = getRoundGrid(round + 1);
+  if (nextTime <= MIN_TIME) {
+    sub.textContent = `⚠️ ${cfg.rows}×${cfg.cols} — רק ${nextTime} שניות. בהצלחה!`;
+  } else {
+    sub.textContent = `גריד ${cfg.rows}×${cfg.cols} | ${nextTime} שניות — בוא נראה אותך!`;
+  }
+  document.getElementById('win-overlay').classList.add('show');
+}
+
+function nextRound() {
+  document.getElementById('win-overlay').classList.remove('show');
+  round++;
+  startRound(round);
+}
+
+// ─── Game over ───────────────────────────────────────────
+function showGameOver() {
+  if (totalScore > highScore) highScore = totalScore;
+  document.getElementById('go-rounds').textContent = roundsWon;
+  document.getElementById('go-score').textContent  = totalScore.toLocaleString();
+  document.getElementById('go-best').textContent   = highScore.toLocaleString();
+  document.getElementById('gameover-overlay').classList.add('show');
+}
+
+function restartGame() {
+  document.getElementById('gameover-overlay').classList.remove('show');
+  round = 1; roundsWon = 0; bestLeft = -1;
+  totalScore = 0;
+  updateScoreDisplay();
+  resetLives();
+  startRound(1);
+}
+
+// ─── Start round ─────────────────────────────────────────
+function startRound(r) {
+  gameActive = false; stopTimer();
+  hintUsed = false;
+  document.getElementById('round-num').textContent = r;
+  const btn = document.getElementById('hint-btn');
+  btn.disabled = false; btn.innerHTML = '💡 רמז';
+  document.querySelectorAll('.cell').forEach(el => el.classList.remove('found','selected','hint'));
+
+  totalTime = getRoundTime(r);
+  timeLeft  = totalTime;
+
+  pickQuestion();
+  generateGrid();
+  renderGrid();
+  updateTimerUI();
+  gameActive = true;
+  startTimer();
+}
+
+document.addEventListener('mouseup', () => { if (isDragging) endSel(); });
+
+// ─── Init ─────────────────────────────────────────────────
+startRound(1);
+</script>
+</body>
+</html>

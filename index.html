@@ -388,6 +388,72 @@
 
   .screen-flash.red { background: rgba(230,57,70,0.2); }
 
+  /* ── Pre-round splash ── */
+  .splash-overlay {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(15,30,60,0.82);
+    backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .splash-overlay.hidden { display: none; }
+  .splash-card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 32px 28px 28px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .splash-round-badge {
+    background: var(--knesset);
+    color: var(--white);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+  }
+  .splash-accusation {
+    font-size: clamp(1.1rem, 4vw, 1.45rem);
+    font-weight: 900;
+    color: var(--knesset);
+    line-height: 1.4;
+    border-right: 5px solid var(--accent);
+    padding-right: 16px;
+    text-align: right;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .splash-name {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 600;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 8px 14px;
+    width: 100%;
+    text-align: center;
+  }
+  .splash-name strong {
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    font-weight: 800;
+  }
+
   /* ── Leaderboard ── */
   .lb-btn {
     background: transparent;
@@ -606,6 +672,19 @@
     <button class="btn-primary" onclick="hideLb()">סגור</button>
   </div>
 </div>
+
+<!-- Pre-round splash -->
+<div class="splash-overlay hidden" id="splash-overlay">
+  <div class="splash-card">
+    <div class="splash-round-badge" id="splash-round-badge">סיבוב 1</div>
+    <div class="splash-accusation" id="splash-accusation"></div>
+    <div class="splash-name">מצא: <strong>נתניהו</strong> — אופקי · אנכי · אלכסוני</div>
+    <button class="btn-primary" onclick="dismissSplash()">▶ התחל — השעון רץ!</button>
+  </div>
+</div>
+
+<script>
+// QUESTIONS — add more questions here ↓
 // ═══════════════════════════════════════════════════════════
 // QUESTIONS — add more questions here ↓
 // ═══════════════════════════════════════════════════════════
@@ -977,6 +1056,7 @@ function pickQuestion() {
   const el = document.getElementById('question-text');
   el.style.opacity = 0;
   setTimeout(() => { el.textContent = q; el.style.opacity = 1; }, 200);
+  return q;
 }
 
 // ─── Scoring ─────────────────────────────────────────────
@@ -1043,6 +1123,23 @@ function restartGame() {
   startRound(1);
 }
 
+// ─── Splash screen ────────────────────────────────────────
+let pendingQuestion = '';
+
+function showSplash(r, question) {
+  pendingQuestion = question;
+  document.getElementById('splash-round-badge').textContent = `סיבוב ${r}`;
+  document.getElementById('splash-accusation').textContent  = question;
+  document.getElementById('splash-overlay').classList.remove('hidden');
+}
+
+function dismissSplash() {
+  document.getElementById('splash-overlay').classList.add('hidden');
+  // Now actually start the timer
+  gameActive = true;
+  startTimer();
+}
+
 // ─── Start round ─────────────────────────────────────────
 function startRound(r) {
   gameActive = false; stopTimer();
@@ -1050,17 +1147,18 @@ function startRound(r) {
   document.getElementById('round-num').textContent = r;
   const btn = document.getElementById('hint-btn');
   btn.disabled = false; btn.innerHTML = '💡 רמז';
-  document.querySelectorAll('.cell').forEach(el => el.classList.remove('found','selected','hint'));
+  document.querySelectorAll('.cell').forEach(el => el.classList.remove('found','selected','hint','revealed'));
 
   totalTime = getRoundTime(r);
   timeLeft  = totalTime;
 
-  pickQuestion();
+  const q = pickQuestion();
   generateGrid();
   renderGrid();
   updateTimerUI();
-  gameActive = true;
-  startTimer();
+
+  // Show splash — timer starts only after player taps "התחל"
+  showSplash(r, q);
 }
 
 document.addEventListener('mouseup', () => { if (isDragging) endSel(); });

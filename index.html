@@ -253,14 +253,16 @@
     100% { transform: scale(1); }
   }
   .cell.hint {
-    background: rgba(212,168,67,0.15);
+    background: rgba(212,168,67,0.25);
     border-color: var(--gold);
+    border-width: 2.5px;
     color: #92620a;
-    animation: pulse-hint 1.4s ease-in-out 3;
+    font-weight: 900;
+    animation: pulse-hint 1.2s ease-in-out infinite;
   }
   @keyframes pulse-hint {
-    0%,100% { box-shadow: 0 0 0 0 rgba(212,168,67,0); }
-    50%     { box-shadow: 0 0 10px 3px rgba(212,168,67,0.5); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(212,168,67,0); background: rgba(212,168,67,0.25); }
+    50%     { box-shadow: 0 0 10px 4px rgba(212,168,67,0.55); background: rgba(212,168,67,0.45); }
   }
 
   .grid.shake { animation: shake 0.45s ease; }
@@ -386,6 +388,93 @@
 
   .screen-flash.red { background: rgba(230,57,70,0.2); }
 
+  /* ── Leaderboard ── */
+  .lb-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: transform 0.15s;
+    line-height: 1;
+  }
+  .lb-btn:hover { transform: scale(1.2); }
+
+  .lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .lb-table thead th {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 700;
+    padding: 4px 6px 8px;
+    text-align: center;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .lb-table thead th:first-child { text-align: right; }
+  .lb-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+  }
+  .lb-table tbody tr:last-child { border-bottom: none; }
+  .lb-table tbody tr.lb-new { background: rgba(212,168,67,0.1); }
+  .lb-table tbody tr.lb-top { }
+  .lb-table td {
+    padding: 9px 6px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .lb-table td:first-child {
+    text-align: right;
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .lb-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 900;
+    background: #f1f5f9;
+    color: var(--muted);
+  }
+  .lb-rank.gold   { background: var(--gold); color: #fff; }
+  .lb-rank.silver { background: #94a3b8; color: #fff; }
+  .lb-rank.bronze { background: #b45309; color: #fff; }
+  .lb-score { color: var(--knesset); font-size: 1rem; }
+  .lb-empty {
+    font-family: 'Assistant', sans-serif;
+    color: var(--muted);
+    font-size: 0.9rem;
+    padding: 20px 0;
+    text-align: center;
+  }
+  .btn-secondary {
+    width: 100%;
+    background: transparent;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 11px;
+    cursor: pointer;
+    font-family: 'Rubik', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--knesset); color: var(--knesset); }
+
   @media (max-height: 700px) {
     .game-wrapper { gap: 4px; padding-top: 5px; }
     .question-banner { padding: 6px 12px 6px 36px; }
@@ -402,8 +491,10 @@
 
 <div class="game-wrapper">
 
-  <div class="header">
+  <div class="header" style="display:flex;align-items:center;justify-content:space-between;">
+    <div style="width:32px"></div>
     <div class="title">איפה ביבי?</div>
+    <button class="lb-btn" onclick="showLeaderboard()" title="לוח תוצאות">🏆</button>
   </div>
 
   <!-- Status: round / lives / hint -->
@@ -499,10 +590,22 @@
     </div>
     <div class="sheet-sub">ביבי הצליח להסתתר ממך...<br>נסה שוב!</div>
     <button class="btn-primary" onclick="restartGame()">התחל מחדש</button>
+    <button class="btn-secondary" onclick="document.getElementById('gameover-overlay').classList.remove('show'); showLeaderboard()">🏆 לוח תוצאות</button>
   </div>
 </div>
 
-<script>
+<!-- Leaderboard overlay -->
+<div class="overlay" id="lb-overlay">
+  <div class="sheet" style="max-height:85dvh;overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:4px;">
+      <div class="sheet-title" style="font-size:1.3rem;">🏆 לוח תוצאות</div>
+      <button class="btn-secondary" style="width:auto;padding:6px 14px;font-size:0.8rem;" onclick="clearLeaderboard()">נקה</button>
+    </div>
+    <div id="lb-content" style="width:100%;"></div>
+    <button class="btn-primary" onclick="hideLb()">סגור</button>
+  </div>
+</div>
 // ═══════════════════════════════════════════════════════════
 // QUESTIONS — add more questions here ↓
 // ═══════════════════════════════════════════════════════════
@@ -511,9 +614,6 @@ const QUESTIONS = [
   "ועדת חקירה ממלכתית קבעה כי סיכן את ביטחון המדינה",
   "מעסיק יועץ שקיבל כסף מקטאר בזמן המלחמה",
   "הצביע בעד תכנית ההתנתקות",
-  "נאשם ב-3 כתבי אישום",
-  "התעלם משלט שמאלנים בוגדים מחוץ למעון שלו",
-  "נתן לעבריין מורשע כמו בן גביר תפקיד בכיר בממשלה"
   // ← הוסף שאלות נוספות כאן
 ];
 
@@ -532,12 +632,24 @@ function getRoundTime(r) {
 }
 
 function getRoundGrid(r) {
-  // Grid grows every 2 rounds
-  const step     = Math.floor((r - 1) / 2);
-  const rows     = Math.min(8  + step * 2, 20);
-  const cols     = Math.min(10 + step * 2, 24);
-  const cellSize = Math.max(24, 40 - step * 2);
-  const fontSize = cellSize >= 34 ? '1rem' : cellSize >= 28 ? '0.88rem' : '0.75rem';
+  const step = Math.floor((r - 1) / 2);
+  const rows = Math.min(8  + step * 2, 20);
+  const cols = Math.min(10 + step * 2, 24);
+
+  // Calculate available space for the grid
+  const screenW = window.innerWidth  - 20;  // 10px padding each side
+  const screenH = window.innerHeight;
+  // Estimate space taken by UI above/below grid (header + status + timer + question + gap*5 + bottom)
+  const uiH = 160;
+  const availH = screenH - uiH;
+  const availW = Math.min(screenW, 700); // max-width cap
+
+  // Cell size = fit whichever dimension is tighter
+  const byW = Math.floor((availW - (cols - 1) * 2) / cols);
+  const byH = Math.floor((availH - (rows - 1) * 2) / rows);
+  const cellSize = Math.max(20, Math.min(byW, byH, 40));
+
+  const fontSize = cellSize >= 32 ? '1rem' : cellSize >= 26 ? '0.85rem' : cellSize >= 22 ? '0.72rem' : '0.62rem';
   return { rows, cols, cellSize, fontSize };
 }
 
@@ -547,9 +659,86 @@ const HEB = 'אבגדהוזחטיכלמנסעפצקרשת';
 let round      = 1;
 let lives      = MAX_LIVES;
 let roundsWon  = 0;
-let bestLeft   = -1;   // best (highest) seconds remaining on a win
+let bestLeft   = -1;
 let totalScore = 0;
 let highScore  = 0;
+let totalTimeSpent = 0; // sum of seconds used across all won rounds
+
+// ─── Leaderboard (localStorage) ──────────────────────────
+const LB_KEY     = 'bibi_leaderboard';
+const LB_MAX     = 5;
+let   lastEntry  = null; // track the just-added entry for highlighting
+
+function lbLoad() {
+  try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; }
+  catch { return []; }
+}
+
+function lbSave(entries) {
+  try { localStorage.setItem(LB_KEY, JSON.stringify(entries)); } catch {}
+}
+
+function lbAddScore(score, rounds, avgTime) {
+  const entries = lbLoad();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})
+                + ' ' + now.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+  const entry = { score, rounds, avgTime, date: dateStr, ts: Date.now() };
+  entries.push(entry);
+  entries.sort((a, b) => b.score - a.score);
+  const trimmed = entries.slice(0, LB_MAX);
+  lbSave(trimmed);
+  lastEntry = entry;
+  return trimmed;
+}
+
+function lbRankClass(i) {
+  return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+}
+
+function renderLeaderboard() {
+  const entries = lbLoad();
+  const el = document.getElementById('lb-content');
+  if (!entries.length) {
+    el.innerHTML = `<div class="lb-empty">אין עדיין תוצאות.<br>שחק את המשחק הראשון שלך!</div>`;
+    return;
+  }
+  const rows = entries.map((e, i) => {
+    const isNew = lastEntry && e.ts === lastEntry.ts;
+    const rankClass = lbRankClass(i);
+    const avg = e.avgTime != null ? e.avgTime + 'שנ\'' : '--';
+    return `<tr class="${isNew ? 'lb-new' : ''}">
+      <td>${e.date}</td>
+      <td><span class="lb-rank ${rankClass}">${i + 1}</span></td>
+      <td class="lb-score">${e.score.toLocaleString()}</td>
+      <td>${e.rounds}</td>
+      <td>${avg}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `
+    <table class="lb-table">
+      <thead><tr>
+        <th>תאריך</th><th>#</th><th>ניקוד</th><th>סיבובים</th><th>ממוצע</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function showLeaderboard() {
+  renderLeaderboard();
+  document.getElementById('lb-overlay').classList.add('show');
+}
+
+function hideLb() {
+  document.getElementById('lb-overlay').classList.remove('show');
+}
+
+function clearLeaderboard() {
+  if (!confirm('למחוק את כל התוצאות?')) return;
+  lbSave([]);
+  lastEntry = null;
+  renderLeaderboard();
+}
 
 let grid          = [];
 let rows          = 0, cols = 0;
@@ -779,7 +968,6 @@ function useHint() {
   const el = getCellEl(r, c);
   if (el) {
     el.classList.add('hint');
-    setTimeout(() => { if (!el.classList.contains('found')) el.classList.remove('hint'); }, 4400);
   }
 }
 
@@ -807,6 +995,7 @@ function onRoundWin() {
   gameActive = false; stopTimer();
   roundsWon++;
   if (timeLeft > bestLeft) bestLeft = timeLeft;
+  totalTimeSpent += (totalTime - timeLeft);
 
   const roundScore = calcRoundScore();
   totalScore += roundScore;
@@ -836,6 +1025,8 @@ function nextRound() {
 
 // ─── Game over ───────────────────────────────────────────
 function showGameOver() {
+  const avgTime = roundsWon > 0 ? Math.round(totalTimeSpent / roundsWon) : null;
+  lbAddScore(totalScore, roundsWon, avgTime);
   if (totalScore > highScore) highScore = totalScore;
   document.getElementById('go-rounds').textContent = roundsWon;
   document.getElementById('go-score').textContent  = totalScore.toLocaleString();
@@ -846,7 +1037,7 @@ function showGameOver() {
 function restartGame() {
   document.getElementById('gameover-overlay').classList.remove('show');
   round = 1; roundsWon = 0; bestLeft = -1;
-  totalScore = 0;
+  totalScore = 0; totalTimeSpent = 0;
   updateScoreDisplay();
   resetLives();
   startRound(1);

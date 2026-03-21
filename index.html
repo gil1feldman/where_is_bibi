@@ -712,8 +712,8 @@ function getRoundTime(r) {
 
 function getRoundGrid(r) {
   const step = Math.floor((r - 1) / 2);
-  const rows = Math.min(8  + step * 2, 20);
-  const cols = Math.min(10 + step * 2, 24);
+  const rows = Math.min(6  + step * 2, 20);
+  const cols = Math.min(8  + step * 2, 24);
 
   // Calculate available space for the grid
   const screenW = window.innerWidth  - 20;  // 10px padding each side

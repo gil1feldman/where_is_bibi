@@ -788,9 +788,9 @@ const TARGETS = [
 ];
 
 // ─── Round progression ───────────────────────────────────
-const INITIAL_TIME = 90;   // seconds for round 1
-const TIME_STEP    = 10;   // seconds removed each round
-const MIN_TIME     = 15;   // floor
+const INITIAL_TIME = 45;   // seconds for round 1
+const TIME_STEP    = 5;    // seconds removed each round
+const MIN_TIME     = 10;   // floor
 const MAX_LIVES    = 3;
 
 function getRoundTime(r) {
@@ -799,8 +799,8 @@ function getRoundTime(r) {
 
 function getRoundGrid(r) {
   const step = Math.floor((r - 1) / 2);
-  const rows = Math.min(6  + step * 2, 20);
-  const cols = Math.min(8  + step * 2, 24);
+  const rows = Math.min(6  + step * 2, 14);
+  const cols = Math.min(8  + step * 2, 12);
 
   // Calculate available space for the grid
   const screenW = window.innerWidth  - 20;  // 10px padding each side

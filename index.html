@@ -46,7 +46,6 @@
     height: 100dvh;
   }
 
-  /* HEADER */
   .header { text-align: center; width: 100%; }
   .title {
     font-size: clamp(1.4rem, 4vw, 2rem);
@@ -54,17 +53,7 @@
     color: var(--knesset);
     line-height: 1;
   }
-  .subtitle {
-    font-family: 'Assistant', sans-serif;
-    font-size: 0.65rem;
-    color: var(--muted);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-top: 1px;
-    font-weight: 600;
-  }
 
-  /* STATUS BAR */
   .status-bar {
     display: flex;
     align-items: center;
@@ -119,35 +108,8 @@
   }
   .hint-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  .giveup-btn {
-    background: transparent;
-    border: 2px solid #fcd5d8;
-    color: #e63946;
-    font-family: 'Rubik', sans-serif;
-    font-size: 0.7rem;
-    padding: 4px 10px;
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-  }
-  .giveup-btn:hover:not(:disabled) {
-    background: rgba(230,57,70,0.08);
-    border-color: var(--accent);
-  }
-  .giveup-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-  /* COUNTDOWN */
   .timer-wrap { width: 100%; }
-  .timer-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .timer-row { display: flex; align-items: center; gap: 10px; }
   .timer-display {
     font-size: 1.6rem;
     font-weight: 900;
@@ -184,7 +146,6 @@
     box-shadow: 0 0 8px rgba(230,57,70,0.4);
   }
 
-  /* QUESTION */
   .question-banner {
     width: 100%;
     background: var(--white);
@@ -221,7 +182,6 @@
     transition: opacity 0.3s;
   }
 
-  /* GRID */
   .grid-container {
     direction: ltr;
     display: flex;
@@ -286,6 +246,18 @@
     0%,100% { box-shadow: 0 0 0 0 rgba(212,168,67,0); background: rgba(212,168,67,0.25); }
     50%     { box-shadow: 0 0 10px 4px rgba(212,168,67,0.55); background: rgba(212,168,67,0.45); }
   }
+  .cell.revealed {
+    background: rgba(230,57,70,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 900;
+    animation: pulse-reveal 0.6s ease;
+  }
+  @keyframes pulse-reveal {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.15); background: rgba(230,57,70,0.35); }
+    100% { transform: scale(1); }
+  }
 
   .grid.shake { animation: shake 0.45s ease; }
   @keyframes shake {
@@ -297,16 +269,6 @@
     100% { transform: translateX(0); }
   }
 
-  .hint-line {
-    font-family: 'Assistant', sans-serif;
-    font-size: 0.65rem;
-    color: var(--muted);
-    text-align: center;
-    padding-bottom: 5px;
-  }
-  .hint-line span { color: var(--knesset); font-weight: 700; }
-
-  /* OVERLAYS */
   .overlay {
     display: none;
     position: fixed;
@@ -335,20 +297,10 @@
   }
   @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
-  .sheet-handle {
-    width: 40px; height: 4px;
-    background: #e2e8f0; border-radius: 4px;
-    margin-bottom: 2px;
-  }
+  .sheet-handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 4px; margin-bottom: 2px; }
   .sheet-emoji { font-size: 2.8rem; }
   .sheet-title { font-size: 1.7rem; font-weight: 900; color: var(--knesset); line-height: 1.1; }
-  .sheet-sub {
-    font-family: 'Assistant', sans-serif;
-    font-size: 0.95rem;
-    color: var(--muted);
-    font-weight: 600;
-    line-height: 1.5;
-  }
+  .sheet-sub { font-family: 'Assistant', sans-serif; font-size: 0.95rem; color: var(--muted); font-weight: 600; line-height: 1.5; }
 
   .stats-row { display: flex; gap: 10px; width: 100%; }
   .stat-box {
@@ -362,14 +314,7 @@
     gap: 2px;
   }
   .stat-val { font-size: 1.6rem; font-weight: 900; color: var(--knesset); line-height: 1; }
-  .stat-lbl {
-    font-family: 'Assistant', sans-serif;
-    font-size: 0.62rem;
-    color: var(--muted);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+  .stat-lbl { font-family: 'Assistant', sans-serif; font-size: 0.62rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
   .btn-primary {
     width: 100%;
@@ -389,45 +334,29 @@
   }
   .btn-primary:active { top: 6px; box-shadow: 0 0 0 transparent; }
 
-  /* flash */
-  .screen-flash {
-    position: fixed; inset: 0; z-index: 50;
-    pointer-events: none; opacity: 0;
-    transition: opacity 0.15s;
+  .btn-secondary {
+    width: 100%;
+    background: transparent;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 11px;
+    cursor: pointer;
+    font-family: 'Rubik', sans-serif;
+    transition: all 0.2s;
   }
-  .cell.revealed {
-    background: rgba(230,57,70,0.15);
-    border-color: var(--accent);
-    color: var(--accent);
-    font-weight: 900;
-    animation: pulse-reveal 0.6s ease;
-  }
-  @keyframes pulse-reveal {
-    0%   { transform: scale(1); }
-    50%  { transform: scale(1.15); background: rgba(230,57,70,0.35); }
-    100% { transform: scale(1); }
-  }
+  .btn-secondary:hover { border-color: var(--knesset); color: var(--knesset); }
 
+  .screen-flash { position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
   .screen-flash.red { background: rgba(230,57,70,0.2); }
 
-  .how-step {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    background: #f8fafc;
-    border-radius: 10px;
-    padding: 10px 12px;
-  }
+  .how-step { display: flex; gap: 10px; align-items: flex-start; background: #f8fafc; border-radius: 10px; padding: 10px 12px; }
   .how-step-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
-  .how-step-text {
-    font-family: 'Assistant', sans-serif;
-    font-size: 0.88rem;
-    line-height: 1.55;
-    color: var(--muted);
-  }
+  .how-step-text { font-family: 'Assistant', sans-serif; font-size: 0.88rem; line-height: 1.55; color: var(--muted); }
   .how-step-text strong { color: var(--text); font-family: 'Rubik', sans-serif; }
 
-  /* ── Pre-round splash ── */
   .splash-overlay {
     position: fixed; inset: 0; z-index: 90;
     background: rgba(15,30,60,0.82);
@@ -451,10 +380,7 @@
     gap: 16px;
     animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
   }
-  @keyframes popIn {
-    from { opacity: 0; transform: scale(0.88); }
-    to   { opacity: 1; transform: scale(1); }
-  }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
   .splash-round-badge {
     background: var(--knesset);
     color: var(--white);
@@ -487,13 +413,8 @@
     width: 100%;
     text-align: center;
   }
-  .splash-name strong {
-    color: var(--text);
-    font-family: 'Rubik', sans-serif;
-    font-weight: 800;
-  }
+  .splash-name strong { color: var(--text); font-family: 'Rubik', sans-serif; font-weight: 800; }
 
-  /* ── Leaderboard ── */
   .lb-btn {
     background: transparent;
     border: none;
@@ -507,11 +428,7 @@
   .lb-btn:hover { transform: scale(1.2); }
   .lb-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
-  .lb-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-  }
+  .lb-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   .lb-table thead th {
     font-family: 'Assistant', sans-serif;
     font-size: 0.6rem;
@@ -524,62 +441,17 @@
     border-bottom: 2px solid #e2e8f0;
   }
   .lb-table thead th:first-child { text-align: right; }
-  .lb-table tbody tr {
-    border-bottom: 1px solid #f1f5f9;
-    transition: background 0.15s;
-  }
+  .lb-table tbody tr { border-bottom: 1px solid #f1f5f9; }
   .lb-table tbody tr:last-child { border-bottom: none; }
   .lb-table tbody tr.lb-new { background: rgba(212,168,67,0.1); }
-  .lb-table tbody tr.lb-top { }
-  .lb-table td {
-    padding: 9px 6px;
-    text-align: center;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .lb-table td:first-child {
-    text-align: right;
-    font-family: 'Assistant', sans-serif;
-    font-size: 0.75rem;
-    color: var(--muted);
-    font-weight: 600;
-  }
-  .lb-rank {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: 900;
-    background: #f1f5f9;
-    color: var(--muted);
-  }
+  .lb-table td { padding: 9px 6px; text-align: center; font-weight: 700; color: var(--text); }
+  .lb-table td:first-child { text-align: right; font-family: 'Assistant', sans-serif; font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+  .lb-rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 0.75rem; font-weight: 900; background: #f1f5f9; color: var(--muted); }
   .lb-rank.gold   { background: var(--gold); color: #fff; }
   .lb-rank.silver { background: #94a3b8; color: #fff; }
   .lb-rank.bronze { background: #b45309; color: #fff; }
   .lb-score { color: var(--knesset); font-size: 1rem; }
-  .lb-empty {
-    font-family: 'Assistant', sans-serif;
-    color: var(--muted);
-    font-size: 0.9rem;
-    padding: 20px 0;
-    text-align: center;
-  }
-  .btn-secondary {
-    width: 100%;
-    background: transparent;
-    border: 2px solid #e2e8f0;
-    border-radius: 14px;
-    color: var(--muted);
-    font-size: 0.9rem;
-    font-weight: 700;
-    padding: 11px;
-    cursor: pointer;
-    font-family: 'Rubik', sans-serif;
-    transition: all 0.2s;
-  }
-  .btn-secondary:hover { border-color: var(--knesset); color: var(--knesset); }
+  .lb-empty { font-family: 'Assistant', sans-serif; color: var(--muted); font-size: 0.9rem; padding: 20px 0; text-align: center; }
 
   @media (max-height: 700px) {
     .game-wrapper { gap: 4px; padding-top: 5px; }
@@ -609,7 +481,6 @@
     </div>
   </div>
 
-  <!-- Status: round / lives / hint -->
   <div class="status-bar">
     <div class="round-block">
       <div class="round-label">סיבוב</div>
@@ -627,27 +498,23 @@
     <button class="hint-btn" id="hint-btn" onclick="useHint()">💡 רמז</button>
   </div>
 
-  <!-- Countdown -->
   <div class="timer-wrap">
     <div class="timer-row">
-      <div class="timer-display" id="timer">90</div>
+      <div class="timer-display" id="timer">45</div>
       <div class="progress-wrap">
         <div class="progress-bar" id="progress-bar"></div>
       </div>
     </div>
   </div>
 
-  <!-- Question -->
   <div class="question-banner">
     <div class="question-label">מי הוא?</div>
     <div class="question-text" id="question-text"></div>
   </div>
 
-  <!-- Grid -->
   <div class="grid-container">
     <div class="grid" id="grid"></div>
   </div>
-
 
 </div>
 
@@ -658,22 +525,10 @@
     <div class="sheet-emoji">🎯</div>
     <div class="sheet-title">מצאת את ביבי!</div>
     <div class="stats-row">
-      <div class="stat-box">
-        <div class="stat-val" id="win-round">1</div>
-        <div class="stat-lbl">סיבוב</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="win-score">0</div>
-        <div class="stat-lbl">+ניקוד</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="win-time-left">--</div>
-        <div class="stat-lbl">שנ' נותרו</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="win-next-time">--</div>
-        <div class="stat-lbl">זמן הבא</div>
-      </div>
+      <div class="stat-box"><div class="stat-val" id="win-round">1</div><div class="stat-lbl">סיבוב</div></div>
+      <div class="stat-box"><div class="stat-val" id="win-score">0</div><div class="stat-lbl">+ניקוד</div></div>
+      <div class="stat-box"><div class="stat-val" id="win-time-left">--</div><div class="stat-lbl">שנ' נותרו</div></div>
+      <div class="stat-box"><div class="stat-val" id="win-next-time">--</div><div class="stat-lbl">זמן הבא</div></div>
     </div>
     <div class="sheet-sub" id="win-sub"></div>
     <button class="btn-primary" onclick="nextRound()">המשך לסיבוב הבא ←</button>
@@ -688,18 +543,9 @@
     <div class="sheet-emoji">😵</div>
     <div class="sheet-title">נגמר הזמן!</div>
     <div class="stats-row">
-      <div class="stat-box">
-        <div class="stat-val" id="go-rounds">0</div>
-        <div class="stat-lbl">סיבובים</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="go-score">0</div>
-        <div class="stat-lbl">ניקוד סופי</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="go-best">--</div>
-        <div class="stat-lbl">שיא אישי</div>
-      </div>
+      <div class="stat-box"><div class="stat-val" id="go-rounds">0</div><div class="stat-lbl">סיבובים</div></div>
+      <div class="stat-box"><div class="stat-val" id="go-score">0</div><div class="stat-lbl">ניקוד סופי</div></div>
+      <div class="stat-box"><div class="stat-val" id="go-best">--</div><div class="stat-lbl">שיא אישי</div></div>
     </div>
     <div class="sheet-sub">ביבי הצליח להסתתר ממך...<br>נסה שוב!</div>
     <button class="btn-primary" onclick="restartGame()">התחל מחדש</button>
@@ -720,12 +566,11 @@
   </div>
 </div>
 
-<!-- Info / How-to overlay -->
+<!-- Info overlay -->
 <div class="overlay" id="info-overlay">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" style="font-size:1.3rem;">איך משחקים?</div>
-
     <div style="width:100%;display:flex;flex-direction:column;gap:8px;text-align:right;">
       <div class="how-step">
         <span class="how-step-icon">🔍</span>
@@ -752,7 +597,6 @@
         <div class="how-step-text"><strong>ויתור</strong> — מסיים את הסיבוב ושומר את הניקוד שצברת עד כה.</div>
       </div>
     </div>
-
     <button class="btn-primary" onclick="document.getElementById('info-overlay').classList.remove('show')">הבנתי, בוא נשחק!</button>
   </div>
 </div>
@@ -770,23 +614,24 @@
 <script>
 // ═══════════════════════════════════════════════════════════
 // ROUNDS — כל פריט: { text: המשפט, target: המילה לחיפוש }
+// חוק: target חייב להופיע בדיוק בתוך text (עם רווחים, אותיות סופיות רגילות)
 // הוסף פריטים נוספים כאן ↓
 // ═══════════════════════════════════════════════════════════
 const ROUNDS_DATA = [
-  { text: "ראש הממשלה בטבח ה-7 באוקטובר",              target: "טבח"        },
-  { text: "ועדת חקירה קבעה כי סיכן את ביטחון המדינה",  target: "ביטחון המדינה" },
-  { text: "מעסיק יועץ שקיבל כסף מקטאר בזמן המלחמה",   target: "קטאר"          },
-  { text: "הצביע בעד תכנית ההתנתקות מעזה",             target: "התנתקות"       },
-  { text: "נאשם בשלושה כתבי אישום פליליים",             target: "כתבי אישום"    },
-  { text: "התעלם משלט שמאלנים בוגדים מחוץ למעון",      target: "בוגדים"        },
-  { text: "נתן לעבריין מורשע בן גביר תפקיד בכיר",      target: "בן גביר"       },
+  { text: "נתניהו היה ראש הממשלה בטבח ה-7 באוקטובר",    target: "נתניהו"        },
+  { text: "ועדת חקירה קבעה כי סיכן את ביטחון המדינה",   target: "ביטחון המדינה" },
+  { text: "מעסיק יועץ שקיבל כסף מקטאר בזמן המלחמה",    target: "קטאר"          },
+  { text: "הצביע בעד תכנית ההתנתקות מעזה",              target: "התנתקות"       },
+  { text: "נאשם בשלושה כתבי אישום פליליים",              target: "כתבי אישום"    },
+  { text: "התעלם משלט שמאלנים בוגדים מחוץ למעון",       target: "בוגדים"        },
+  { text: "נתן לעבריין מורשע בן גביר תפקיד בכיר",       target: "בן גביר"       },
   // ← הוסף פריטים נוספים כאן
 ];
 
 // ─── Round progression ───────────────────────────────────
-const INITIAL_TIME = 45;   // seconds for round 1
-const TIME_STEP    = 5;    // seconds removed each round
-const MIN_TIME     = 10;   // floor
+const INITIAL_TIME = 45;
+const TIME_STEP    = 5;
+const MIN_TIME     = 10;
 const MAX_LIVES    = 3;
 
 function getRoundTime(r) {
@@ -797,20 +642,14 @@ function getRoundGrid(r) {
   const step = Math.floor((r - 1) / 2);
   const rows = Math.min(6  + step * 2, 14);
   const cols = Math.min(8  + step * 2, 12);
-
-  // Calculate available space for the grid
-  const screenW = window.innerWidth  - 20;  // 10px padding each side
+  const screenW = window.innerWidth - 20;
   const screenH = window.innerHeight;
-  // Estimate space taken by UI above/below grid (header + status + timer + question + gap*5 + bottom)
   const uiH = 160;
   const availH = screenH - uiH;
-  const availW = Math.min(screenW, 700); // max-width cap
-
-  // Cell size = fit whichever dimension is tighter
+  const availW = Math.min(screenW, 700);
   const byW = Math.floor((availW - (cols - 1) * 2) / cols);
   const byH = Math.floor((availH - (rows - 1) * 2) / rows);
   const cellSize = Math.max(20, Math.min(byW, byH, 40));
-
   const fontSize = cellSize >= 32 ? '1rem' : cellSize >= 26 ? '0.85rem' : cellSize >= 22 ? '0.72rem' : '0.62rem';
   return { rows, cols, cellSize, fontSize };
 }
@@ -818,31 +657,29 @@ function getRoundGrid(r) {
 const HEB = 'אבגדהוזחטיכלמנסעפצקרשת'; // ללא אותיות סופיות
 
 // ─── State ───────────────────────────────────────────────
-let round      = 1;
-let lives      = MAX_LIVES;
-let roundsWon  = 0;
-let bestLeft   = -1;
-let totalScore = 0;
-let highScore  = 0;
+let round          = 1;
+let lives          = MAX_LIVES;
+let roundsWon      = 0;
+let bestLeft       = -1;
+let totalScore     = 0;
+let highScore      = 0;
 let totalTimeSpent = 0;
-let hintsUsedTotal = 0;  // counts across all rounds
+let hintsUsedTotal = 0;
 
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycby_0B5jflGHac3Pk96sFkPJybgfgNiBPpqMQ3d9QsXiVeKa5JH_iisTrQVRJ8MjFzh3/exec';
 
-// ─── Leaderboard (localStorage) ──────────────────────────
-const LB_KEY     = 'bibi_leaderboard';
-const LB_MAX     = 5;
-let   lastEntry  = null; // track the just-added entry for highlighting
+// ─── Leaderboard ─────────────────────────────────────────
+const LB_KEY = 'bibi_leaderboard';
+const LB_MAX = 5;
+let lastEntry = null;
 
 function lbLoad() {
   try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; }
   catch { return []; }
 }
-
 function lbSave(entries) {
   try { localStorage.setItem(LB_KEY, JSON.stringify(entries)); } catch {}
 }
-
 function lbAddScore(score, rounds, avgTime) {
   const entries = lbLoad();
   const now = new Date();
@@ -856,11 +693,9 @@ function lbAddScore(score, rounds, avgTime) {
   lastEntry = entry;
   return trimmed;
 }
-
 function lbRankClass(i) {
   return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
 }
-
 function renderLeaderboard() {
   const entries = lbLoad();
   const el = document.getElementById('lb-content');
@@ -868,7 +703,7 @@ function renderLeaderboard() {
     el.innerHTML = `<div class="lb-empty">אין עדיין תוצאות.<br>שחק את המשחק הראשון שלך!</div>`;
     return;
   }
-  const rows = entries.map((e, i) => {
+  const rowsHtml = entries.map((e, i) => {
     const isNew = lastEntry && e.ts === lastEntry.ts;
     const rankClass = lbRankClass(i);
     const avg = e.avgTime != null ? e.avgTime + 'שנ\'' : '--';
@@ -885,38 +720,62 @@ function renderLeaderboard() {
       <thead><tr>
         <th>תאריך</th><th>#</th><th>ניקוד</th><th>סיבובים</th><th>ממוצע</th>
       </tr></thead>
-      <tbody>${rows}</tbody>
+      <tbody>${rowsHtml}</tbody>
     </table>`;
 }
-
-function showLeaderboard() {
-  renderLeaderboard();
-  document.getElementById('lb-overlay').classList.add('show');
-}
-
-function hideLb() {
-  document.getElementById('lb-overlay').classList.remove('show');
-}
-
+function showLeaderboard() { renderLeaderboard(); document.getElementById('lb-overlay').classList.add('show'); }
+function hideLb() { document.getElementById('lb-overlay').classList.remove('show'); }
 function clearLeaderboard() {
   if (!confirm('למחוק את כל התוצאות?')) return;
-  lbSave([]);
-  lastEntry = null;
-  renderLeaderboard();
+  lbSave([]); lastEntry = null; renderLeaderboard();
 }
 
+// ─── Grid state ───────────────────────────────────────────
 let grid          = [];
 let rows          = 0, cols = 0;
 let targetCells   = new Set();
 let selectedCells = [];
 let isDragging    = false;
 let selectStart   = null;
-
 let timerInterval = null;
 let timeLeft      = INITIAL_TIME;
 let totalTime     = INITIAL_TIME;
 let gameActive    = false;
 let hintUsed      = false;
+
+// ─── Question ────────────────────────────────────────────
+const recentIndexes = [];
+let currentTarget = 'נתניהו';
+
+const FINAL_TO_REGULAR = { 'ך':'כ', 'ם':'מ', 'ן':'נ', 'ף':'פ', 'ץ':'צ' };
+
+function toGridWord(str) {
+  // Remove spaces and convert final letters to regular
+  return str.replace(/\s+/g, '').replace(/[ךםןףץ]/g, l => FINAL_TO_REGULAR[l]);
+}
+
+function pickQuestion() {
+  const minGap = Math.min(3, ROUNDS_DATA.length - 1);
+  const available = ROUNDS_DATA.filter((_, i) => !recentIndexes.slice(-minGap).includes(i));
+  const chosen = available[Math.floor(Math.random() * available.length)];
+  const idx = ROUNDS_DATA.indexOf(chosen);
+  recentIndexes.push(idx);
+  if (recentIndexes.length > ROUNDS_DATA.length) recentIndexes.shift();
+
+  const item = ROUNDS_DATA[idx];
+  currentTarget = toGridWord(item.target);
+
+  // Highlight target in sentence
+  const escaped = item.target.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const highlighted = item.text.replace(
+    new RegExp(escaped),
+    `<mark style="background:rgba(230,57,70,0.15);color:var(--accent);border-radius:3px;padding:0 2px;font-weight:900;">${item.target}</mark>`
+  );
+  const el = document.getElementById('question-text');
+  el.style.opacity = 0;
+  setTimeout(() => { el.innerHTML = highlighted; el.style.opacity = 1; }, 200);
+  return item;
+}
 
 // ─── Grid generation ──────────────────────────────────────
 function generateGrid() {
@@ -955,11 +814,7 @@ function generateGrid() {
     placed = true;
   }
 
-  // Safety: if placement failed (should never happen with these grid sizes), retry the whole grid
-  if (!placed) {
-    console.warn('Grid placement failed, retrying...');
-    return generateGrid();
-  }
+  if (!placed) { console.warn('Grid placement failed, retrying...'); return generateGrid(); }
 
   for (let r = 0; r < rows; r++)
     for (let c = 0; c < cols; c++)
@@ -996,7 +851,7 @@ function renderGrid() {
 
 function getCellEl(r, c) { return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`); }
 
-// ─── Countdown ───────────────────────────────────────────
+// ─── Timer ───────────────────────────────────────────────
 function startTimer() {
   clearInterval(timerInterval);
   updateTimerUI();
@@ -1007,9 +862,7 @@ function startTimer() {
     if (timeLeft <= 0) onTimeUp();
   }, 1000);
 }
-
 function stopTimer() { clearInterval(timerInterval); }
-
 function updateTimerUI() {
   const el  = document.getElementById('timer');
   const bar = document.getElementById('progress-bar');
@@ -1026,16 +879,11 @@ function onTimeUp() {
   stopTimer();
   lives--;
   updateLivesUI();
-
   const gridEl = document.getElementById('grid');
   gridEl.classList.add('shake');
   setTimeout(() => gridEl.classList.remove('shake'), 500);
   flashRed();
-
-  // Reveal where Netanyahu was hiding
   revealTarget();
-
-  // Wait for player to see it, then continue
   const delay = 2200;
   if (lives <= 0) setTimeout(showGameOver, delay);
   else            setTimeout(() => startRound(round), delay);
@@ -1045,10 +893,7 @@ function revealTarget() {
   targetCells.forEach(key => {
     const [r, c] = key.split(',').map(Number);
     const el = getCellEl(r, c);
-    if (el) {
-      el.classList.remove('selected', 'hint', 'found');
-      el.classList.add('revealed');
-    }
+    if (el) { el.classList.remove('selected', 'hint', 'found'); el.classList.add('revealed'); }
   });
 }
 
@@ -1076,8 +921,8 @@ function extendSel(r, c) {
   if (!isDragging || !selectStart) return;
   const dr = r - selectStart.r, dc = c - selectStart.c;
   let nr = 0, nc = 0;
-  if (dr === 0 && dc !== 0)              { nc = dc > 0 ? 1 : -1; }
-  else if (dc === 0 && dr !== 0)         { nr = dr > 0 ? 1 : -1; }
+  if (dr === 0 && dc !== 0)             { nc = dc > 0 ? 1 : -1; }
+  else if (dc === 0 && dr !== 0)        { nr = dr > 0 ? 1 : -1; }
   else if (Math.abs(dr)===Math.abs(dc)) { nr = dr>0?1:-1; nc = dc>0?1:-1; }
   else { selectedCells = [{r:selectStart.r,c:selectStart.c}]; updateSelUI(); return; }
   const cells = [];
@@ -1105,7 +950,8 @@ function updateSelUI() {
   });
 }
 function checkSel() {
-  if (selectedCells.length < 4) return;
+  // BUG FIX: minimum 2 (not 4) to support short words like טבח (3 letters)
+  if (selectedCells.length < 2) return;
   const keys = new Set(selectedCells.map(({r,c}) => `${r},${c}`));
   const overlap = [...keys].filter(k => targetCells.has(k)).length;
   if (overlap === targetCells.size && keys.size === targetCells.size) {
@@ -1132,47 +978,14 @@ function useHint() {
   const key = available[Math.floor(Math.random() * available.length)];
   const [r, c] = key.split(',').map(Number);
   const el = getCellEl(r, c);
-  if (el) {
-    el.classList.add('hint');
-  }
-}
-
-// ─── Question ────────────────────────────────────────────
-const recentIndexes = [];
-let currentTarget = 'נתניהו'; // set per round
-
-function pickQuestion() {
-  const minGap = Math.min(3, ROUNDS_DATA.length - 1);
-  const available = ROUNDS_DATA.filter((_, i) => !recentIndexes.slice(-minGap).includes(i));
-  const idx = ROUNDS_DATA.indexOf(available[Math.floor(Math.random() * available.length)]);
-  recentIndexes.push(idx);
-  if (recentIndexes.length > ROUNDS_DATA.length) recentIndexes.shift();
-
-  const item = ROUNDS_DATA[idx];
-  const FINAL_TO_REGULAR = { 'ך':'כ', 'ם':'מ', 'ן':'נ', 'ף':'פ', 'ץ':'צ' };
-  currentTarget = item.target
-    .replace(/\s+/g, '')
-    .replace(/[ךםןףץ]/g, l => FINAL_TO_REGULAR[l]);
-
-  // Highlight the target phrase inside the sentence (handles spaces)
-  const escapedTarget = item.target.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  const highlighted = item.text.replace(
-    new RegExp(escapedTarget),
-    `<mark style="background:rgba(230,57,70,0.15);color:var(--accent);border-radius:3px;padding:0 2px;font-weight:900;">${item.target}</mark>`
-  );
-  const el = document.getElementById('question-text');
-  el.style.opacity = 0;
-  setTimeout(() => { el.innerHTML = highlighted; el.style.opacity = 1; }, 200);
-  return item;
+  if (el) el.classList.add('hint');
 }
 
 // ─── Scoring ─────────────────────────────────────────────
-// Base: timeLeft × round × 10  |  hint penalty: ×0.8
 function calcRoundScore() {
   const base = timeLeft * round * 10;
   return Math.round(hintUsed ? base * 0.8 : base);
 }
-
 function updateScoreDisplay() {
   document.getElementById('score-display').textContent = totalScore.toLocaleString();
 }
@@ -1183,17 +996,14 @@ function onRoundWin() {
   roundsWon++;
   if (timeLeft > bestLeft) bestLeft = timeLeft;
   totalTimeSpent += (totalTime - timeLeft);
-
   const roundScore = calcRoundScore();
   totalScore += roundScore;
   updateScoreDisplay();
-
   const nextTime = getRoundTime(round + 1);
   document.getElementById('win-round').textContent     = round;
   document.getElementById('win-score').textContent     = '+' + roundScore.toLocaleString();
   document.getElementById('win-time-left').textContent = timeLeft;
   document.getElementById('win-next-time').textContent = nextTime;
-
   const sub = document.getElementById('win-sub');
   const cfg = getRoundGrid(round + 1);
   if (nextTime <= MIN_TIME) {
@@ -1203,34 +1013,24 @@ function onRoundWin() {
   }
   document.getElementById('win-overlay').classList.add('show');
 }
-
 function nextRound() {
   document.getElementById('win-overlay').classList.remove('show');
   round++;
   startRound(round);
 }
-
 function finishGame() {
   document.getElementById('win-overlay').classList.remove('show');
   showGameOver('finished');
 }
 
-// ─── Google Sheets reporting ─────────────────────────────
+// ─── Google Sheets ────────────────────────────────────────
 function sendToSheets(endReason) {
   const avgTime = roundsWon > 0 ? Math.round(totalTimeSpent / roundsWon) : null;
-  const payload = {
-    score:     totalScore,
-    rounds:    roundsWon,
-    avgTime:   avgTime,
-    hints:     hintsUsedTotal,
-    endReason: endReason,
-  };
   fetch(SHEETS_URL, {
-    method: 'POST',
-    mode:   'no-cors',
+    method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }).catch(() => {}); // fail silently
+    body: JSON.stringify({ score: totalScore, rounds: roundsWon, avgTime, hints: hintsUsedTotal, endReason }),
+  }).catch(() => {});
 }
 
 // ─── Game over ───────────────────────────────────────────
@@ -1244,7 +1044,6 @@ function showGameOver(endReason = 'lives') {
   document.getElementById('go-best').textContent   = highScore.toLocaleString();
   document.getElementById('gameover-overlay').classList.add('show');
 }
-
 function restartGame() {
   document.getElementById('gameover-overlay').classList.remove('show');
   round = 1; roundsWon = 0; bestLeft = -1;
@@ -1253,32 +1052,26 @@ function restartGame() {
   resetLives();
   startRound(1);
 }
+function showInfo() { document.getElementById('info-overlay').classList.add('show'); }
 
-function showInfo() {
-  document.getElementById('info-overlay').classList.add('show');
-}
-
-// ─── Splash screen ────────────────────────────────────────
-
+// ─── Splash ───────────────────────────────────────────────
 function showSplash(r, item) {
   document.getElementById('splash-round-badge').textContent = `סיבוב ${r}`;
-  const escapedTarget = item.target.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const escaped = item.target.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
   const highlighted = item.text.replace(
-    new RegExp(escapedTarget),
+    new RegExp(escaped),
     `<mark style="background:rgba(230,57,70,0.18);color:var(--accent);border-radius:3px;padding:0 3px;font-weight:900;">${item.target}</mark>`
   );
   document.getElementById('splash-accusation').innerHTML = highlighted;
   document.getElementById('splash-target').textContent = item.target;
   document.getElementById('splash-overlay').classList.remove('hidden');
 }
-
 function dismissSplash() {
   document.getElementById('splash-overlay').classList.add('hidden');
   document.getElementById('giveup-btn').disabled = false;
   gameActive = true;
   startTimer();
 }
-
 function giveUp() {
   if (!gameActive) return;
   gameActive = false;
@@ -1287,7 +1080,6 @@ function giveUp() {
   revealTarget();
   setTimeout(() => showGameOver('giveup'), 2000);
 }
-
 function confirmRestart() {
   if (!confirm('להתחיל מחדש? הניקוד הנוכחי יאבד.')) return;
   gameActive = false;
@@ -1310,11 +1102,10 @@ function startRound(r) {
   document.getElementById('round-num').textContent = r;
   const btn = document.getElementById('hint-btn');
   btn.disabled = false; btn.innerHTML = '💡 רמז';
-  document.getElementById('giveup-btn').disabled = true;  document.querySelectorAll('.cell').forEach(el => el.classList.remove('found','selected','hint','revealed'));
-
+  document.getElementById('giveup-btn').disabled = true;
+  document.querySelectorAll('.cell').forEach(el => el.classList.remove('found','selected','hint','revealed'));
   totalTime = getRoundTime(r);
   timeLeft  = totalTime;
-
   const item = pickQuestion();
   generateGrid();
   renderGrid();

@@ -410,6 +410,23 @@
 
   .screen-flash.red { background: rgba(230,57,70,0.2); }
 
+  .how-step {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .how-step-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .how-step-text {
+    font-family: 'Assistant', sans-serif;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .how-step-text strong { color: var(--text); font-family: 'Rubik', sans-serif; }
+
   /* ── Pre-round splash ── */
   .splash-overlay {
     position: fixed; inset: 0; z-index: 90;
@@ -586,7 +603,10 @@
       <button class="lb-btn" onclick="confirmRestart()" title="התחל מחדש">↺</button>
     </div>
     <div class="title">איפה ביבי?</div>
-    <button class="lb-btn" onclick="showLeaderboard()" title="לוח תוצאות">🏆</button>
+    <div style="display:flex;gap:4px;">
+      <button class="lb-btn" onclick="showInfo()" title="הוראות" style="font-style:italic;font-weight:900;font-family:'Rubik',sans-serif;font-size:1rem;">i</button>
+      <button class="lb-btn" onclick="showLeaderboard()" title="לוח תוצאות">🏆</button>
+    </div>
   </div>
 
   <!-- Status: round / lives / hint -->
@@ -697,6 +717,43 @@
     </div>
     <div id="lb-content" style="width:100%;"></div>
     <button class="btn-primary" onclick="hideLb()">סגור</button>
+  </div>
+</div>
+
+<!-- Info / How-to overlay -->
+<div class="overlay" id="info-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="font-size:1.3rem;">איך משחקים?</div>
+
+    <div style="width:100%;display:flex;flex-direction:column;gap:8px;text-align:right;">
+      <div class="how-step">
+        <span class="how-step-icon">🔍</span>
+        <div class="how-step-text">בכל סיבוב תופיע <strong>עובדה על נתניהו</strong> — מצא את המילה <strong>נתניהו</strong> בגריד האותיות.</div>
+      </div>
+      <div class="how-step">
+        <span class="how-step-icon">👆</span>
+        <div class="how-step-text">גרור עם האצבע או העכבר על האותיות לסימון — <strong>אופקי, אנכי, ואלכסוני</strong> בכל כיוון.</div>
+      </div>
+      <div class="how-step">
+        <span class="how-step-icon">⏱️</span>
+        <div class="how-step-text">יש לך זמן מוגבל לכל סיבוב. <strong>ככל שמוצאים מהר יותר — יותר נקודות.</strong> הזמן קצר יותר בכל סיבוב.</div>
+      </div>
+      <div class="how-step">
+        <span class="how-step-icon">❤️</span>
+        <div class="how-step-text">יש לך <strong>3 חיים</strong>. כל פעם שנגמר הזמן — מאבדים חיים. בלי חיים — המשחק נגמר.</div>
+      </div>
+      <div class="how-step">
+        <span class="how-step-icon">💡</span>
+        <div class="how-step-text">כפתור <strong>רמז</strong> מדגיש אות אחת — חינם לסיבוב, אבל מפחית 20% מהניקוד.</div>
+      </div>
+      <div class="how-step">
+        <span class="how-step-icon">🏳️</span>
+        <div class="how-step-text"><strong>ויתור</strong> — מסיים את הסיבוב ושומר את הניקוד שצברת עד כה.</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="document.getElementById('info-overlay').classList.remove('show')">הבנתי, בוא נשחק!</button>
   </div>
 </div>
 
@@ -1163,6 +1220,10 @@ function restartGame() {
   updateScoreDisplay();
   resetLives();
   startRound(1);
+}
+
+function showInfo() {
+  document.getElementById('info-overlay').classList.add('show');
 }
 
 // ─── Splash screen ────────────────────────────────────────

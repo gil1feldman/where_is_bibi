@@ -119,6 +119,28 @@
   }
   .hint-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+  .giveup-btn {
+    background: transparent;
+    border: 2px solid #fcd5d8;
+    color: #e63946;
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .giveup-btn:hover:not(:disabled) {
+    background: rgba(230,57,70,0.08);
+    border-color: var(--accent);
+  }
+  .giveup-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
   /* COUNTDOWN */
   .timer-wrap { width: 100%; }
   .timer-row {
@@ -579,6 +601,8 @@
       <span class="life" id="life-3">❤️</span>
     </div>
     <button class="hint-btn" id="hint-btn" onclick="useHint()">💡 רמז</button>
+    <button class="giveup-btn" id="giveup-btn" onclick="giveUp()">🏳️ נמאס</button>
+    <button class="giveup-btn" style="border-color:#dde4ef;color:var(--muted);" onclick="confirmRestart()">↺ מחדש</button>
   </div>
 
   <!-- Countdown -->
@@ -695,7 +719,7 @@ const QUESTIONS = [
   "הצביע בעד תכנית ההתנתקות",
   "נאשם ב-3 כתבי אישום",
   "התעלם משלט שמאלנים בוגדים מחוץ למעון שלו",
-  "נתן לעבריין מורשע כמו בן גביר תפקיד בכיר בממשלה"
+  "נתן לעבריין מורשע כמו בן גביר תפקיד בכיר בממשלה",
   // ← הוסף שאלות נוספות כאן
 ];
 
@@ -1145,9 +1169,32 @@ function showSplash(r, question) {
 
 function dismissSplash() {
   document.getElementById('splash-overlay').classList.add('hidden');
-  // Now actually start the timer
+  document.getElementById('giveup-btn').disabled = false;
   gameActive = true;
   startTimer();
+}
+
+function confirmRestart() {
+  if (!confirm('להתחיל מחדש? הניקוד הנוכחי יאבד.')) return;
+  gameActive = false;
+  stopTimer();
+  document.getElementById('win-overlay').classList.remove('show');
+  document.getElementById('gameover-overlay').classList.remove('show');
+  document.getElementById('splash-overlay').classList.add('hidden');
+  round = 1; roundsWon = 0; bestLeft = -1;
+  totalScore = 0; totalTimeSpent = 0;
+  updateScoreDisplay();
+  resetLives();
+  startRound(1);
+}
+
+// ─── Give up ─────────────────────────────────────────────
+function giveUp() {
+  if (!gameActive) return;
+  gameActive = false;
+  stopTimer();
+  revealTarget();
+  setTimeout(showGameOver, 2000);
 }
 
 // ─── Start round ─────────────────────────────────────────
@@ -1157,6 +1204,7 @@ function startRound(r) {
   document.getElementById('round-num').textContent = r;
   const btn = document.getElementById('hint-btn');
   btn.disabled = false; btn.innerHTML = '💡 רמז';
+  document.getElementById('giveup-btn').disabled = true;
   document.querySelectorAll('.cell').forEach(el => el.classList.remove('found','selected','hint','revealed'));
 
   totalTime = getRoundTime(r);

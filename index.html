@@ -619,7 +619,7 @@
 // ═══════════════════════════════════════════════════════════
 const ROUNDS_DATA = [
   { text: "נתניהו היה ראש הממשלה בטבח ה-7 באוקטובר",    target: "נתניהו"        },
-  { text: "ועדת חקירה קבעה כי סיכן את ביטחון המדינה",   target: "ביטחון המדינה" },
+  { text: "ועדת חקירה קבעה כי סיכן את ביטחון המדינה",   target: "ביטחון"         },
   { text: "מעסיק יועץ שקיבל כסף מקטאר בזמן המלחמה",    target: "קטאר"          },
   { text: "הצביע בעד תכנית ההתנתקות מעזה",              target: "התנתקות"       },
   { text: "נאשם בשלושה כתבי אישום פליליים",              target: "כתבי אישום"    },
@@ -756,44 +756,46 @@ function toGridWord(str) {
 
 function pickQuestion() {
   const minGap = Math.min(3, ROUNDS_DATA.length - 1);
-  const available = ROUNDS_DATA.filter((_, i) => !recentIndexes.slice(-minGap).includes(i));
-  const chosen = available[Math.floor(Math.random() * available.length)];
-  const idx = ROUNDS_DATA.indexOf(chosen);
+  const availableIdxs = ROUNDS_DATA
+    .map((_, i) => i)
+    .filter(i => !recentIndexes.slice(-minGap).includes(i));
+
+  // If nothing available (e.g. very few items), reset and pick any
+  const pool = availableIdxs.length > 0 ? availableIdxs : ROUNDS_DATA.map((_, i) => i);
+  const idx = pool[Math.floor(Math.random() * pool.length)];
+
   recentIndexes.push(idx);
   if (recentIndexes.length > ROUNDS_DATA.length) recentIndexes.shift();
 
   const item = ROUNDS_DATA[idx];
 
-  // Check if full target fits in grid; if not, pick the longest single word that fits
+  // Max straight-line length in grid
   const cfg = getRoundGrid(round);
   const maxLen = Math.max(cfg.rows, cfg.cols);
+  // Note: diagonal max is min(rows,cols) — but straight lines are longer, so we use max
   let gridWord = toGridWord(item.target);
+  let displayTarget = item.target; // what to highlight in sentence
 
   if (gridWord.length > maxLen) {
-    // Split original target by spaces and pick the longest word that fits
-    const words = item.target.split(/\s+/);
-    const candidates = words
+    // Split by spaces, find longest word that fits
+    const candidates = item.target.split(/\s+/)
       .map(w => ({ orig: w, grid: toGridWord(w) }))
-      .filter(w => w.grid.length <= maxLen)
+      .filter(w => w.grid.length >= 2 && w.grid.length <= maxLen)
       .sort((a, b) => b.grid.length - a.grid.length);
 
     if (candidates.length > 0) {
-      gridWord = candidates[0].grid;
-      // Update displayed target to the chosen word
-      item._displayTarget = candidates[0].orig;
+      gridWord    = candidates[0].grid;
+      displayTarget = candidates[0].orig;
     } else {
-      // Last resort: truncate to maxLen
-      gridWord = gridWord.slice(0, maxLen);
-      item._displayTarget = item.target;
+      // Absolute last resort: use first maxLen chars
+      gridWord    = toGridWord(item.target).slice(0, maxLen);
+      displayTarget = item.target;
     }
-  } else {
-    item._displayTarget = item.target;
   }
 
   currentTarget = gridWord;
 
-  // Highlight the display target in the sentence
-  const displayTarget = item._displayTarget;
+  // Highlight displayTarget in sentence
   const escaped = displayTarget.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
   const highlighted = item.text.replace(
     new RegExp(escaped),
@@ -803,7 +805,7 @@ function pickQuestion() {
   el.style.opacity = 0;
   setTimeout(() => { el.innerHTML = highlighted; el.style.opacity = 1; }, 200);
 
-  // Return item with resolved display target for splash
+  // Return a clean copy — never mutate ROUNDS_DATA
   return { text: item.text, target: displayTarget };
 }
 
@@ -813,6 +815,12 @@ function generateGrid() {
   rows = cfg.rows; cols = cfg.cols;
   document.documentElement.style.setProperty('--cell-size', cfg.cellSize + 'px');
   document.documentElement.style.setProperty('--grid-font', cfg.fontSize);
+
+  // Safety: ensure word fits in at least one dimension
+  const maxStraight = Math.max(rows, cols);
+  if (currentTarget.length > maxStraight) {
+    currentTarget = currentTarget.slice(0, maxStraight);
+  }
 
   grid = Array.from({length: rows}, () => Array(cols).fill(''));
   targetCells = new Set();
@@ -915,7 +923,7 @@ function onTimeUp() {
   flashRed();
   revealTarget();
   const delay = 2200;
-  if (lives <= 0) setTimeout(showGameOver, delay);
+  if (lives <= 0) setTimeout(() => showGameOver('lives'), delay);
   else            setTimeout(() => startRound(round), delay);
 }
 

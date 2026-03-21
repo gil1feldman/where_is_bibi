@@ -1279,6 +1279,7 @@ function confirmRestart() {
   if (!confirm('להתחיל מחדש? הניקוד הנוכחי יאבד.')) return;
   gameActive = false;
   stopTimer();
+  if (totalScore > 0 || roundsWon > 0) sendToSheets('restart');
   document.getElementById('win-overlay').classList.remove('show');
   document.getElementById('gameover-overlay').classList.remove('show');
   document.getElementById('splash-overlay').classList.add('hidden');

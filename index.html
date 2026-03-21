@@ -762,29 +762,25 @@
   <div class="splash-card">
     <div class="splash-round-badge" id="splash-round-badge">סיבוב 1</div>
     <div class="splash-accusation" id="splash-accusation"></div>
-    <div class="splash-name">מצא: <strong>נתניהו</strong> — אופקי · אנכי · אלכסוני</div>
+    <div class="splash-name">חפש את המילה: <strong id="splash-target">נתניהו</strong></div>
     <button class="btn-primary" onclick="dismissSplash()">▶ התחל — השעון רץ!</button>
   </div>
 </div>
 
 <script>
-// QUESTIONS — add more questions here ↓
 // ═══════════════════════════════════════════════════════════
-// QUESTIONS — add more questions here ↓
+// ROUNDS — כל פריט: { text: המשפט, target: המילה לחיפוש }
+// הוסף פריטים נוספים כאן ↓
 // ═══════════════════════════════════════════════════════════
-const QUESTIONS = [
-  "ראש הממשלה בטבח ה-7/10",
-  "ועדת חקירה ממלכתית קבעה כי סיכן את ביטחון המדינה",
-  "מעסיק יועץ שקיבל כסף מקטאר בזמן המלחמה",
-  "הצביע בעד תכנית ההתנתקות",
-  "נאשם ב-3 כתבי אישום",
-  "התעלם משלט שמאלנים בוגדים מחוץ למעון שלו",
-  "נתן לעבריין מורשע כמו בן גביר תפקיד בכיר בממשלה",
-  // ← הוסף שאלות נוספות כאן
-];
-
-const TARGETS = [
-  "נתניהו",
+const ROUNDS_DATA = [
+  { text: "ראש הממשלה בטבח ה-7 באוקטובר",             target: "טבח"      },
+  { text: "ועדת חקירה קבעה כי סיכן את ביטחון המדינה", target: "ביטחונהמדינה"      },
+  { text: "מעסיק יועץ שקיבל כסף מקטאר בזמן המלחמה",  target: "קטאר"        },
+  { text: "הצביע בעד תכנית ההתנתקות מעזה",            target: "התנתקות"     },
+  { text: "נאשם בשלושה כתבי אישום פליליים",            target: "כתביאישום"       },
+  { text: "התעלם משלט שמאלנים בוגדים מחוץ למעון",     target: "בוגדים"      },
+  { text: "נתן לעבריין המורשע בן גביר תפקיד בכיר",     target: "עבריינ"      },
+  // ← הוסף פריטים נוספים כאן
 ];
 
 // ─── Round progression ───────────────────────────────────
@@ -819,7 +815,7 @@ function getRoundGrid(r) {
   return { rows, cols, cellSize, fontSize };
 }
 
-const HEB = 'אבגדהוזחטיכלמנסעפצקרשת';
+const HEB = 'אבגדהוזחטיכלמנסעפצקרשת'; // ללא אותיות סופיות
 
 // ─── State ───────────────────────────────────────────────
 let round      = 1;
@@ -933,7 +929,7 @@ function generateGrid() {
   targetCells = new Set();
 
   const dirs = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
-  const word = TARGETS[Math.floor(Math.random() * TARGETS.length)];
+  const word = currentTarget;
   let placed = false, attempts = 0;
 
   while (!placed && attempts < 300) {
@@ -1142,19 +1138,32 @@ function useHint() {
 }
 
 // ─── Question ────────────────────────────────────────────
-const recentQuestions = []; // tracks last 3 shown
+const recentIndexes = [];
+let currentTarget = 'נתניהו'; // set per round
 
 function pickQuestion() {
-  const minGap = Math.min(3, QUESTIONS.length - 1);
-  const available = QUESTIONS.filter(q => !recentQuestions.slice(-minGap).includes(q));
-  const q = available[Math.floor(Math.random() * available.length)];
-  recentQuestions.push(q);
-  if (recentQuestions.length > QUESTIONS.length) recentQuestions.shift();
+  const minGap = Math.min(3, ROUNDS_DATA.length - 1);
+  const available = ROUNDS_DATA.filter((_, i) => !recentIndexes.slice(-minGap).includes(i));
+  const idx = ROUNDS_DATA.indexOf(available[Math.floor(Math.random() * available.length)]);
+  recentIndexes.push(idx);
+  if (recentIndexes.length > ROUNDS_DATA.length) recentIndexes.shift();
 
+  const item = ROUNDS_DATA[idx];
+  const FINAL_TO_REGULAR = { 'ך':'כ', 'ם':'מ', 'ן':'נ', 'ף':'פ', 'ץ':'צ' };
+  currentTarget = item.target
+    .replace(/\s+/g, '')
+    .replace(/[ךםןףץ]/g, l => FINAL_TO_REGULAR[l]);
+
+  // Highlight the target phrase inside the sentence (handles spaces)
+  const escapedTarget = item.target.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const highlighted = item.text.replace(
+    new RegExp(escapedTarget),
+    `<mark style="background:rgba(230,57,70,0.15);color:var(--accent);border-radius:3px;padding:0 2px;font-weight:900;">${item.target}</mark>`
+  );
   const el = document.getElementById('question-text');
   el.style.opacity = 0;
-  setTimeout(() => { el.textContent = q; el.style.opacity = 1; }, 200);
-  return q;
+  setTimeout(() => { el.innerHTML = highlighted; el.style.opacity = 1; }, 200);
+  return item;
 }
 
 // ─── Scoring ─────────────────────────────────────────────
@@ -1250,12 +1259,16 @@ function showInfo() {
 }
 
 // ─── Splash screen ────────────────────────────────────────
-let pendingQuestion = '';
 
-function showSplash(r, question) {
-  pendingQuestion = question;
+function showSplash(r, item) {
   document.getElementById('splash-round-badge').textContent = `סיבוב ${r}`;
-  document.getElementById('splash-accusation').textContent  = question;
+  const escapedTarget = item.target.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const highlighted = item.text.replace(
+    new RegExp(escapedTarget),
+    `<mark style="background:rgba(230,57,70,0.18);color:var(--accent);border-radius:3px;padding:0 3px;font-weight:900;">${item.target}</mark>`
+  );
+  document.getElementById('splash-accusation').innerHTML = highlighted;
+  document.getElementById('splash-target').textContent = item.target;
   document.getElementById('splash-overlay').classList.remove('hidden');
 }
 
@@ -1302,13 +1315,11 @@ function startRound(r) {
   totalTime = getRoundTime(r);
   timeLeft  = totalTime;
 
-  const q = pickQuestion();
+  const item = pickQuestion();
   generateGrid();
   renderGrid();
   updateTimerUI();
-
-  // Show splash — timer starts only after player taps "התחל"
-  showSplash(r, q);
+  showSplash(r, item);
 }
 
 document.addEventListener('mouseup', () => { if (isDragging) endSel(); });

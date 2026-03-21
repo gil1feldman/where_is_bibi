@@ -693,6 +693,9 @@ const QUESTIONS = [
   "ועדת חקירה ממלכתית קבעה כי סיכן את ביטחון המדינה",
   "מעסיק יועץ שקיבל כסף מקטאר בזמן המלחמה",
   "הצביע בעד תכנית ההתנתקות",
+  "נאשם ב-3 כתבי אישום",
+  "התעלם משלט שמאלנים בוגדים מחוץ למעון שלו",
+  "נתן לעבריין מורשע כמו בן גביר תפקיד בכיר בממשלה"
   // ← הוסף שאלות נוספות כאן
 ];
 
@@ -1051,8 +1054,15 @@ function useHint() {
 }
 
 // ─── Question ────────────────────────────────────────────
+const recentQuestions = []; // tracks last 3 shown
+
 function pickQuestion() {
-  const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+  const minGap = Math.min(3, QUESTIONS.length - 1);
+  const available = QUESTIONS.filter(q => !recentQuestions.slice(-minGap).includes(q));
+  const q = available[Math.floor(Math.random() * available.length)];
+  recentQuestions.push(q);
+  if (recentQuestions.length > QUESTIONS.length) recentQuestions.shift();
+
   const el = document.getElementById('question-text');
   el.style.opacity = 0;
   setTimeout(() => { el.textContent = q; el.style.opacity = 1; }, 200);

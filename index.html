@@ -453,9 +453,6 @@
   .lb-score { color: var(--knesset); font-size: 1rem; }
   .lb-empty { font-family: 'Assistant', sans-serif; color: var(--muted); font-size: 0.9rem; padding: 20px 0; text-align: center; }
 
-  /* ════════════════════════════════════════════════
-     Welcome screen
-  ════════════════════════════════════════════════ */
   .welcome-overlay {
     position: fixed; inset: 0; z-index: 200;
     background: linear-gradient(160deg, #0d2240 0%, #1a3a5c 60%, #1e4976 100%);
@@ -581,7 +578,7 @@
       </div>
       <div class="welcome-step">
         <span class="welcome-step-icon">👆</span>
-        <div class="welcome-step-text">גרור על האותיות — <strong>אופקי, אנכי, ואלכסוני</strong> בכל כיוון</div>
+        <div class="welcome-step-text">גרור על האותיות, או <strong>לחץ אחת-אחת</strong> — <strong>אופקי, אנכי, ואלכסוני</strong> בכל כיוון</div>
       </div>
       <div class="welcome-step">
         <span class="welcome-step-icon">⏱️</span>
@@ -708,7 +705,7 @@
       </div>
       <div class="how-step">
         <span class="how-step-icon">👆</span>
-        <div class="how-step-text">גרור עם האצבע או העכבר על האותיות לסימון — <strong>אופקי, אנכי, ואלכסוני</strong> בכל כיוון.</div>
+        <div class="how-step-text">גרור עם האצבע או העכבר, או <strong>לחץ אות-אות</strong> — <strong>אופקי, אנכי, ואלכסוני</strong> בכל כיוון. לחיצה על אות לא סמוכה מאפסת את הסימון.</div>
       </div>
       <div class="how-step">
         <span class="how-step-icon">⏱️</span>
@@ -823,6 +820,12 @@ let grid=[], rows=0, cols=0, targetCells=new Set(), selectedCells=[];
 let isDragging=false, selectStart=null, timerInterval=null;
 let timeLeft=INITIAL_TIME, totalTime=INITIAL_TIME, gameActive=false, hintUsed=false;
 
+// ─── Click-select state ───────────────────────────────────
+// clickChain: array of {r,c} — the chain built by clicks (not drags)
+// clickMode: true when last interaction was a click (not a drag)
+let clickChain = [];
+let clickMode = false;
+
 const recentIndexes = [];
 let currentTarget = 'נתניהו';
 const FINAL_TO_REGULAR = {'ך':'כ','ם':'מ','ן':'נ','ף':'פ','ץ':'צ'};
@@ -885,18 +888,135 @@ function renderGrid() {
   for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) {
     const cell=document.createElement('div');
     cell.className='cell'; cell.textContent=grid[r][c]; cell.dataset.r=r; cell.dataset.c=c;
-    cell.addEventListener('mousedown',e=>{e.preventDefault();startSel(r,c);});
-    cell.addEventListener('mouseenter',()=>{if(isDragging)extendSel(r,c);});
-    cell.addEventListener('mouseup',()=>endSel());
-    cell.addEventListener('touchstart',e=>{e.preventDefault();startSel(r,c);},{passive:false});
-    cell.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el&&el.classList.contains('cell'))extendSel(+el.dataset.r,+el.dataset.c);},{passive:false});
-    cell.addEventListener('touchend',()=>endSel());
+
+    // ── Mouse: press = pending, move = drag, up = end or click ──
+    cell.addEventListener('mousedown', e => {
+      e.preventDefault();
+      _pendingDrag = { r, c };
+    });
+    cell.addEventListener('mouseenter', () => {
+      if (_pendingDrag && !isDragging) {
+        // Movement detected — commit to drag mode
+        clearClickChain();
+        startSel(_pendingDrag.r, _pendingDrag.c);
+        _pendingDrag = null;
+      }
+      if (isDragging) extendSel(r, c);
+    });
+    cell.addEventListener('mouseup', () => {
+      if (isDragging) {
+        endSel();
+      } else if (_pendingDrag) {
+        // Released without moving — treat as click
+        _pendingDrag = null;
+        handleCellClick(r, c);
+      }
+    });
+
+    // ── Touch: same logic via touchmove detection ─────────
+    cell.addEventListener('touchstart', e => {
+      e.preventDefault();
+      _pendingDrag = { r, c };
+    }, { passive: false });
+    cell.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const t = e.touches[0];
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      if (!el || !el.classList.contains('cell')) return;
+      const tr = +el.dataset.r, tc = +el.dataset.c;
+      if (_pendingDrag && !isDragging) {
+        if (tr !== _pendingDrag.r || tc !== _pendingDrag.c) {
+          // Moved to a different cell — commit to drag
+          clearClickChain();
+          startSel(_pendingDrag.r, _pendingDrag.c);
+          _pendingDrag = null;
+          extendSel(tr, tc);
+        }
+      } else if (isDragging) {
+        extendSel(tr, tc);
+      }
+    }, { passive: false });
+    cell.addEventListener('touchend', () => {
+      if (isDragging) {
+        endSel();
+      } else if (_pendingDrag) {
+        // Tap without move — treat as click
+        _pendingDrag = null;
+        handleCellClick(r, c);
+      }
+    });
+
     gridEl.appendChild(cell);
   }
 }
 
+// Pending drag: pressed but not yet moved
+let _pendingDrag = null; // {r, c} or null
+let _dragJustEnded = false;
+
 function getCellEl(r,c){return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);}
 
+// ─── Click-mode helpers ───────────────────────────────────
+
+function isAdjacent(r1, c1, r2, c2) {
+  return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1 && !(r1 === r2 && c1 === c2);
+}
+
+function handleCellClick(r, c) {
+  if (!gameActive) return;
+
+  // If already found, ignore
+  const el = getCellEl(r, c);
+  if (el && el.classList.contains('found')) return;
+
+  if (clickChain.length === 0) {
+    // Start a new chain
+    clickChain = [{ r, c }];
+    clickMode = true;
+    updateSelUI();
+    return;
+  }
+
+  const head = clickChain[0];
+  const tail = clickChain[clickChain.length - 1];
+
+  const adjToTail = isAdjacent(tail.r, tail.c, r, c);
+  const adjToHead = isAdjacent(head.r, head.c, r, c);
+
+  // Already in chain — clicking same cell resets
+  const inChain = clickChain.some(p => p.r === r && p.c === c);
+  if (inChain) {
+    clickChain = [{ r, c }];
+    clickMode = true;
+    updateSelUI();
+    return;
+  }
+
+  if (adjToTail || adjToHead) {
+    // Extend chain at the appropriate end
+    if (adjToTail) {
+      clickChain.push({ r, c });
+    } else {
+      clickChain.unshift({ r, c });
+    }
+    clickMode = true;
+    selectedCells = [...clickChain];
+    updateSelUI();
+    checkSel();
+  } else {
+    // Not adjacent to either end — reset chain to just this cell
+    clickChain = [{ r, c }];
+    clickMode = true;
+    updateSelUI();
+  }
+}
+
+function clearClickChain() {
+  clickChain = [];
+  clickMode = false;
+}
+
+// ─── Timer ────────────────────────────────────────────────
 function startTimer(){clearInterval(timerInterval);updateTimerUI();timerInterval=setInterval(()=>{if(!gameActive)return;timeLeft--;updateTimerUI();if(timeLeft<=0)onTimeUp();},1000);}
 function stopTimer(){clearInterval(timerInterval);}
 function updateTimerUI(){
@@ -910,7 +1030,7 @@ function onTimeUp(){
   gameActive=false; stopTimer(); lives--; updateLivesUI();
   document.getElementById('grid').classList.add('shake');
   setTimeout(()=>document.getElementById('grid').classList.remove('shake'),500);
-  flashRed(); revealTarget();
+  flashRed(); revealTarget(); clearClickChain();
   if(lives<=0) setTimeout(()=>showGameOver('lives'),2200);
   else setTimeout(()=>startRound(round),2200);
 }
@@ -919,7 +1039,13 @@ function flashRed(){const f=document.getElementById('screen-flash');f.className=
 function updateLivesUI(){for(let i=1;i<=MAX_LIVES;i++)document.getElementById(`life-${i}`).classList.toggle('lost',i>lives);}
 function resetLives(){lives=MAX_LIVES;updateLivesUI();}
 
-function startSel(r,c){if(!gameActive)return;isDragging=true;selectStart={r,c};selectedCells=[{r,c}];updateSelUI();}
+// ─── Drag selection ───────────────────────────────────────
+function startSel(r,c){
+  if(!gameActive)return;
+  // Starting a drag clears any click-chain
+  clearClickChain();
+  isDragging=true; selectStart={r,c}; selectedCells=[{r,c}]; updateSelUI();
+}
 function extendSel(r,c){
   if(!isDragging||!selectStart)return;
   const dr=r-selectStart.r,dc=c-selectStart.c;
@@ -932,17 +1058,39 @@ function extendSel(r,c){
   while(true){cells.push({r:cr,c:cc});if(cr===r&&cc===c)break;cr+=nr;cc+=nc;if(cr<0||cr>=rows||cc<0||cc>=cols)break;}
   selectedCells=cells;updateSelUI();
 }
-function endSel(){if(!isDragging)return;isDragging=false;checkSel();selectedCells=[];updateSelUI();selectStart=null;}
-function updateSelUI(){
-  document.querySelectorAll('.cell.selected').forEach(el=>{if(!el.classList.contains('found'))el.classList.remove('selected');});
-  selectedCells.forEach(({r,c})=>{const el=getCellEl(r,c);if(el&&!el.classList.contains('found'))el.classList.add('selected');});
+function endSel(){
+  if(!isDragging)return;
+  isDragging=false;
+  checkSel();
+  selectedCells=[]; updateSelUI(); selectStart=null;
 }
+
+// ─── Shared selection UI & check ─────────────────────────
+function updateSelUI(){
+  // Clear all non-found selected states
+  document.querySelectorAll('.cell.selected').forEach(el=>{
+    if(!el.classList.contains('found')) el.classList.remove('selected');
+  });
+  // Apply from whichever source is active
+  const source = clickMode ? clickChain : selectedCells;
+  source.forEach(({r,c})=>{
+    const el=getCellEl(r,c);
+    if(el&&!el.classList.contains('found')) el.classList.add('selected');
+  });
+}
+
 function checkSel(){
-  if(selectedCells.length<2)return;
-  const keys=new Set(selectedCells.map(({r,c})=>`${r},${c}`));
+  const source = clickMode ? clickChain : selectedCells;
+  if(source.length < 2) return;
+  const keys=new Set(source.map(({r,c})=>`${r},${c}`));
   const overlap=[...keys].filter(k=>targetCells.has(k)).length;
   if(overlap===targetCells.size&&keys.size===targetCells.size){
-    selectedCells.forEach(({r,c})=>{const el=getCellEl(r,c);if(el){el.classList.remove('selected');el.classList.add('found');}});
+    source.forEach(({r,c})=>{
+      const el=getCellEl(r,c);
+      if(el){el.classList.remove('selected');el.classList.add('found');}
+    });
+    clearClickChain();
+    selectedCells=[];
     setTimeout(onRoundWin,450);
   }
 }
@@ -1026,6 +1174,7 @@ function giveUp(){
   if(!gameActive)return;
   gameActive=false; stopTimer();
   document.getElementById('giveup-btn').disabled=true;
+  clearClickChain();
   revealTarget(); setTimeout(()=>showGameOver('giveup'),2000);
 }
 function confirmRestart(){
@@ -1036,11 +1185,13 @@ function confirmRestart(){
   document.getElementById('gameover-overlay').classList.remove('show');
   document.getElementById('splash-overlay').classList.add('hidden');
   round=1;roundsWon=0;bestLeft=-1;totalScore=0;totalTimeSpent=0;hintsUsedTotal=0;
+  clearClickChain();
   updateScoreDisplay();resetLives();startRound(1);
 }
 
 function startRound(r){
   gameActive=false; stopTimer(); hintUsed=false;
+  clearClickChain(); selectedCells=[];
   document.getElementById('round-num').textContent=r;
   const btn=document.getElementById('hint-btn'); btn.disabled=false; btn.innerHTML='💡 רמז';
   document.getElementById('giveup-btn').disabled=true;
@@ -1050,9 +1201,12 @@ function startRound(r){
   showSplash(r,item);
 }
 
-document.addEventListener('mouseup',()=>{if(isDragging)endSel();});
+document.addEventListener('mouseup',()=>{
+  if(isDragging) endSel();
+  _pendingDrag = null; // released outside grid
+});
 
-// ─── Init — show welcome screen, grid silent in background ─
+// ─── Init ─────────────────────────────────────────────────
 (function init(){
   totalTime=getRoundTime(1); timeLeft=totalTime;
   updateTimerUI(); updateLivesUI(); updateScoreDisplay();
